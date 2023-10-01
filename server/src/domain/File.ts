@@ -28,13 +28,8 @@ export class File {
             }
         }
 
-        const listHex: string[][] = listByte.map(buffer =>
-            Array.from(buffer).map(byte => byte.toString(16).padStart(2, '0'))
-        );
-
-        for (const arraystring of listHex) {
-            const CAT = parseInt(arraystring[0], 16);
-            console.log(CAT);
+        for (const arraystring of listByte) {
+            const CAT = parseInt(arraystring[0].toString(16).padStart(2, '0'), 16);
 
             if (CAT === 48) {
                 const newcat048 = new CAT048(arraystring);

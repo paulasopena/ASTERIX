@@ -14,7 +14,7 @@ app.get('/readFile/:filePath', (req, res) => {
 
     const fileStructure = new File(filePath);
     fileStructure.readFile();
-
+    fileStructure.cat048[10].decodeMessages();
     res.send(fileStructure.cat048);
   } catch (error) {
     console.error('Error reading file:', error);
