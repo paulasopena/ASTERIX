@@ -1,7 +1,7 @@
 import { SERVER_URL } from "../environments/environments";
 
 
-export async function fetchData() {
+export async function fetchBytes() {
     try {
         const response = await fetch(SERVER_URL + '/readFile');
         const data = await response.text();
@@ -10,7 +10,3 @@ export async function fetchData() {
         console.error('Error fetching file data:', error);
     }
 };
-
-export async function sliceBuffer(buffer: Buffer) {
-    
-}

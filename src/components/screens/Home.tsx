@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useState } from 'react';
+import { fetchBytes } from "../../asterix/file_manager";
 
 const Home = () => {
   const [fileData, setFileData] = useState('');
@@ -7,9 +8,8 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:3001/readFile');
-        const data = await response.text();
-        setFileData(data);
+        const data = await fetchBytes()
+        setFileData(data|| '');
       } catch (error) {
         console.error('Error fetching file data:', error);
       }
