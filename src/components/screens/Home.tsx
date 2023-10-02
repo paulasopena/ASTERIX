@@ -8,7 +8,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchBytes()
+        const data = await fetchBytes('230502-est-080001_BCN_60MN_08_09.ast');
         setFileData(data|| '');
       } catch (error) {
         console.error('Error fetching file data:', error);
