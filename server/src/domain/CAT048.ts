@@ -55,6 +55,7 @@ export class CAT048 {
         console.log('Number FSPEC: ' + numFSPEC);
 
         var j = 0;
+        var counter = 3;
 
         while (j <= numFSPEC) {
             var currentByte  = this.messages.readUInt8(j + 3);
@@ -69,12 +70,14 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[7] === '1') {
-                        var octet1  = this.messages.readUInt8(numFSPEC + 3).toString(2).padStart(8, '0').split('').reverse();
-                        var octet2  = this.messages.readUInt8(numFSPEC + 4).toString(2).padStart(8, '0').split('').reverse();
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2)
+                        console.log(parameter[0] + "iiii" + parameter[1]);
+
+                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
+                        var octet2  = this.messages.readUInt8(numFSPEC + counter + 1).toString(2).padStart(8, '0').split('');
                         const array = [...octet1, ...octet2];
-                        console.log('Data Source Identifier (bits): ' + array);
-                        console.log('Data Source Identifier (decimal): ' + this.messages.readUInt8(numFSPEC + 3) + ' ' + this.messages.readUInt8(numFSPEC + 4));
                         this.setDataSourceIdentifier(array);
+                        counter = counter + 2;
                     } else {
                         console.log('Data Source Identifier: null');
                     }
@@ -84,21 +87,13 @@ export class CAT048 {
                         Definition: Absolute time stamping expressed as Co-ordinated Universal Time (UTC).
                         Format: Three-octet fixed length Data Item. 
                     */
-                    if (binaryArray[6] === '1' && binaryArray[7] === '0') {
-                        var octet1  = this.messages.readUInt8(numFSPEC + 3).toString(2).padStart(8, '0').split('').reverse();
-                        var octet2  = this.messages.readUInt8(numFSPEC + 4).toString(2).padStart(8, '0').split('').reverse();
-                        var octet3  = this.messages.readUInt8(numFSPEC + 5).toString(2).padStart(8, '0').split('').reverse();
-                        const array = [...octet1, ...octet2, octet3];
-                        console.log('Time of Day (bits): ' + array);
-                        console.log('Time of Day (decimal): ' + this.messages.readUInt8(numFSPEC + 3) + ' ' + this.messages.readUInt8(numFSPEC + 4) + ' ' + this.messages.readUInt8(numFSPEC + 5));
-
-                    } else if (binaryArray[6] === '1' && binaryArray[7] === '1') {
-                        var octet1  = this.messages.readUInt8(numFSPEC + 5).toString(2).padStart(8, '0').split('').reverse();
-                        var octet2  = this.messages.readUInt8(numFSPEC + 6).toString(2).padStart(8, '0').split('').reverse();
-                        var octet3  = this.messages.readUInt8(numFSPEC + 7).toString(2).padStart(8, '0').split('').reverse();
+                    if (binaryArray[6] === '1') {
+                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
+                        var octet2  = this.messages.readUInt8(numFSPEC + counter + 1).toString(2).padStart(8, '0').split('');
+                        var octet3  = this.messages.readUInt8(numFSPEC + counter + 2).toString(2).padStart(8, '0').split('');
                         const array = [...octet1, ...octet2, ...octet3];
-                        console.log('Time of Day (bits): ' + array);
-                        console.log('Time of Day (decimal): ' + this.messages.readUInt8(numFSPEC + 5) + ' ' + this.messages.readUInt8(numFSPEC + 6) + ' ' + this.messages.readUInt8(numFSPEC + 7));
+                        this.setTimeOfDay(array);
+                        counter = counter + 3;
                     } else {
                         console.log('Time of Day: null');
                     }
@@ -106,66 +101,206 @@ export class CAT048 {
                     /*
                         Data Item I048/020, Target Report Descriptor
                         Definition: Type and properties of the target report.
-                        Format: Variable length Data Item comprising a first part of one-octet, followed by one-octet extents as necessary.
+                        Format: Variable length Data Item comprising a first part of one-octet, followed by one-octet extents 
+                        as necessary.
                     */
                     if (binaryArray[5] === '1') {
+                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
 
+                        var numTarget = 0;
+                        var moreTarget = true;
+                        var i = 0;
+
+                        while (i <= 7) { 
+                            if ( moreTarget ) {
+                                if (octet1[7] === '1') {
+                                    numTarget += 1;
+                                } else {
+                                    numTarget += 1; 
+                                    moreTarget = false;
+                                }               
+                            }
+                            i = i + 1;
+                        }
+
+                        console.log('numTarget: ' + numTarget);
+
+                        var bitArray: any[] = []; 
+                        var j = 0;
+
+                        while (j < numTarget) {
+                            var bits = this.messages.readUInt8(numFSPEC + counter + j).toString(2).padStart(8, '0').split('');
+                            bitArray = bitArray.concat(bits);
+                            j = j + 1;
+                        }
+
+                        this.setTargetReportDescriptor(bitArray, numTarget);
+
+                        console.log('Target Report Descriptor: ' + bitArray);
+
+                    } else {
+                        console.log('Target Report Descriptor: null');
                     }
+
+                    /*
+                        Data Item I048/040, Measured Position in Polar Co-ordinates
+                        Definition: Measured position of an aircraft in local polar co-ordinates.
+                        Format: Four-octet fixed length Data Item.
+                    */
                     if (binaryArray[4] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/070, Mode-3/A Code in Octal Representation
+                        Definition: Mode-3/A code converted into octal representation.
+                        Format: Two-octet fixed length Data Item.
+                    */
                     if (binaryArray[3] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/090, Flight Level in Binary Representation
+                        Definition: Flight Level converted into binary representation.
+                        Format: Two-octet fixed length Data Item.
+                    */
                     if (binaryArray[2] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/130, Radar Plot Characteristics
+                        Definition: Additional information on the quality of the target report.
+                        Format: Compound Data Item.
+                    */
                     if (binaryArray[1] === '1') {
 
                     }
                     break;
                 case 1:
+
+                    /*
+                        Data Item I048/220, Aircraft Address
+                        Definition: Aircraft address (24-bits Mode S address) assigned uniquely to each aircraft.
+                        Format: Three-octet fixed length Data Item.
+                    */
                     if (binaryArray[7] === '1') {
                         
                     }
+
+                    /*
+                        Data Item I048/240, Aircraft Identification
+                        Definition: Aircraft identification (in 8 characters) obtained from an aircraft equipped with a 
+                        Mode S transponder.
+                        Format: Six-octet fixed length Data Item.
+                    */
                     if (binaryArray[6] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/250, BDS Register Data
+                        Definition: BDS Register Data as extracted from the aircraft transponder.
+                        Format: Repetitive Data Item starting with a one-octet Field Repetition Indicator (REP) followed 
+                        by at least one BDS Register comprising one seven octet BDS Register Data and one octet BDS Register 
+                        code.
+                    */
                     if (binaryArray[5] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/161, Track Number
+                        Definition: An integer value representing a unique reference to a track record within a particular 
+                        track file.
+                        Format: Two-octet fixed length Data Item.
+                    */
                     if (binaryArray[4] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/042, Calculated Position in Cartesian Co-ordinates
+                        Definition: Calculated position of an aircraft in Cartesian co-ordinates.
+                        Format: Four-octet fixed length Data Item in Two’s Complement.
+                    */
                     if (binaryArray[3] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/200, Calculated Track Velocity in Polar Co-ordinates
+                        Definition: Calculated track velocity expressed in polar co-ordinates.
+                        Format: Four-octet fixed length Data Item.
+                    */
                     if (binaryArray[2] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/170, Track Status
+                        Definition: Status of monoradar track (PSR and/or SSR updated).
+                        Format: Variable length Data Item comprising a first part of one-octet, followed by one-octet 
+                        extents as necessary.
+                    */
                     if (binaryArray[1] === '1') {
 
                     }
                     break;
                 case 2:
+
+                    /*
+                        No s'ha d'analitzar
+                    */
                     if (binaryArray[7] === '1') {
                         
                     }
+
+                    /*
+                        No s'ha d'analitzar
+                    */
                     if (binaryArray[6] === '1') {
 
                     }
+
+                    /*
+                        No s'ha d'analitzar
+                    */
                     if (binaryArray[5] === '1') {
 
                     }
+
+                    /*
+                        No s'ha d'analitzar
+                    */
                     if (binaryArray[4] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/110, Height Measured by a 3D Radar
+                        Definition: Height of a target as measured by a 3D radar. The height shall use mean sea level as the 
+                        zero reference level.
+                        Format: Two-octet fixed length Data Item.
+                    */
                     if (binaryArray[3] === '1') {
 
                     }
+
+                    /*
+                        No s'ha d'analitzar
+                    */
                     if (binaryArray[2] === '1') {
 
                     }
+
+                    /*
+                        Data Item I048/230, Communications/ACAS Capability and Flight Status
+                        Definition: Communications capability of the transponder, capability of the on-board ACAS equipment 
+                        and flight status.
+                        Format: Two-octet fixed length Data Item.
+                    */
                     if (binaryArray[1] === '1') {
 
                     }
@@ -177,13 +312,21 @@ export class CAT048 {
     }
 
     async setDataSourceIdentifier(buffer: string[]) {
-        var SAC = buffer.slice(0, 7);
-        var SIC = buffer.slice(8, 15);
-        console.log('SAC: ' + SAC);
-        console.log('SIC: ' + SIC);
+        var SAC = buffer.slice(0, 8).join('');
+        var SIC = buffer.slice(8, 16).join('');
+
+        /*this.dataSourceIdentifier.SAC = SAC;
+        this.dataSourceIdentifier.SIC = SIC;*/
+
+        console.log('SAC (binari): ' + SAC);
+        console.log('SIC (binari): ' + SIC);
     }
 
-    async setTargetReportDescriptor(buffer: Buffer) {
+    async setTargetReportDescriptor(buffer: string[], numTarget: number) {
+        if (numTarget === 1) {
+            var TYP = buffer.slice(0, 3).join('');
+            console.log('TYP: ' + TYP);
+        }
 
     }
 
@@ -211,9 +354,14 @@ export class CAT048 {
 
     }
 
-    async setTimeOfDay(buffer: Buffer) {
-
+    async setTimeOfDay(buffer: string[]) {
+        var timeDay = buffer.slice(0, 24).join('');
+    
+        const decimalTimeDay = parseInt(timeDay, 2);
+        
+        console.log('Time-of-day (binario): ' + timeDay + ' -- (decimal): ' + decimalTimeDay/128 + 's');
     }
+    
 
     async setTrackNumber(buffer: Buffer) {
 
