@@ -70,13 +70,8 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[7] === '1') {
-                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2)
-                        console.log(parameter[0] + "iiii" + parameter[1]);
-
-                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
-                        var octet2  = this.messages.readUInt8(numFSPEC + counter + 1).toString(2).padStart(8, '0').split('');
-                        const array = [...octet1, ...octet2];
-                        this.setDataSourceIdentifier(array);
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                        this.setDataSourceIdentifier(parameter);
                         counter = counter + 2;
                     } else {
                         console.log('Data Source Identifier: null');
@@ -88,11 +83,8 @@ export class CAT048 {
                         Format: Three-octet fixed length Data Item. 
                     */
                     if (binaryArray[6] === '1') {
-                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
-                        var octet2  = this.messages.readUInt8(numFSPEC + counter + 1).toString(2).padStart(8, '0').split('');
-                        var octet3  = this.messages.readUInt8(numFSPEC + counter + 2).toString(2).padStart(8, '0').split('');
-                        const array = [...octet1, ...octet2, ...octet3];
-                        this.setTimeOfDay(array);
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 3);
+                        this.setTimeOfDay(parameter);
                         counter = counter + 3;
                     } else {
                         console.log('Time of Day: null');
@@ -105,14 +97,13 @@ export class CAT048 {
                         as necessary.
                     */
                     if (binaryArray[5] === '1') {
-                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
-
                         var numTarget = 0;
                         var moreTarget = true;
                         var i = 0;
 
-                        while (i <= 7) { 
+                        while (i <= 3) { 
                             if ( moreTarget ) {
+                                var octet1  = this.messages.readUInt8(numFSPEC + counter + i).toString(2).padStart(8, '0').split('');
                                 if (octet1[7] === '1') {
                                     numTarget += 1;
                                 } else {
@@ -125,18 +116,20 @@ export class CAT048 {
 
                         console.log('numTarget: ' + numTarget);
 
-                        var bitArray: any[] = []; 
-                        var j = 0;
+                        var parameter: Buffer;
 
-                        while (j < numTarget) {
-                            var bits = this.messages.readUInt8(numFSPEC + counter + j).toString(2).padStart(8, '0').split('');
-                            bitArray = bitArray.concat(bits);
-                            j = j + 1;
-                        }
-
-                        this.setTargetReportDescriptor(bitArray, numTarget);
-
-                        console.log('Target Report Descriptor: ' + bitArray);
+                        if (numTarget == 1) {
+                            parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 1);
+                            counter = counter + 1;
+                        } else if (numTarget == 2) {
+                            parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                            counter = counter + 2;
+                        } else {
+                            parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 3);
+                            counter = counter + 3;
+                        }    
+                        
+                        this.setTargetReportDescriptor(parameter, numTarget);
 
                     } else {
                         console.log('Target Report Descriptor: null');
@@ -311,21 +304,110 @@ export class CAT048 {
         }
     }
 
-    async setDataSourceIdentifier(buffer: string[]) {
-        var SAC = buffer.slice(0, 8).join('');
-        var SIC = buffer.slice(8, 16).join('');
+    async setDataSourceIdentifier(buffer: Buffer) {
+        var SAC = buffer[0];
+        var SIC = buffer[1];
 
-        /*this.dataSourceIdentifier.SAC = SAC;
-        this.dataSourceIdentifier.SIC = SIC;*/
+        var binarySAC = SAC.toString(2).padStart(8, '0');
+        var binarySIC = SIC.toString(2).padStart(8, '0');
 
-        console.log('SAC (binari): ' + SAC);
-        console.log('SIC (binari): ' + SIC);
+        console.log('SAC (binario): ' + binarySAC);
+        console.log('SIC (binario): ' + binarySIC);
     }
 
-    async setTargetReportDescriptor(buffer: string[], numTarget: number) {
+    async setTargetReportDescriptor(buffer: Buffer, numTarget: number) {
+        var octet1;
+        var octet2;
+        var octet3;
         if (numTarget === 1) {
-            var TYP = buffer.slice(0, 3).join('');
+            octet1 = buffer[0].toString(2).padStart(8, '0');
+        } else if (numTarget === 2) {
+            octet1 = buffer[0].toString(2).padStart(8, '0');
+            octet2 = buffer[1].toString(2).padStart(8, '0');
+        } else if (numTarget === 3) {
+            octet1 = buffer[0].toString(2).padStart(8, '0');
+            octet2 = buffer[1].toString(2).padStart(8, '0');
+            octet3 = buffer[2].toString(2).padStart(8, '0');
+        } else {
+            console.log('Valor de numTarget no válido');
+        }
+        if (octet1 != undefined) {
+            var TYP;
+
+            var binaryOctet1 = octet1.slice(0, 3);
+
+            if (binaryOctet1 === '000') {
+                TYP = 'No detection';
+            } else if (binaryOctet1 === '001') {
+                TYP = 'Single PSR detection';
+            } else if (binaryOctet1 === '010') {
+                TYP = 'Single SSR detection';
+            } else if (binaryOctet1 === '011') {
+                TYP = 'SSR + PSR detection';
+            } else if (binaryOctet1 === '100') {
+                TYP = 'Single ModeS All-Call';
+            } else if (binaryOctet1 === '101') {
+                TYP = 'Single ModeS Roll-Call';
+            } else if (binaryOctet1 === '110') {
+                TYP = 'ModeS All-Call + PSR';
+            } else if (binaryOctet1 === '111') {
+                TYP = 'ModeS Roll-Call + PSR';
+            } else {
+                TYP = 'Valor no reconocido'; 
+            }
+
             console.log('TYP: ' + TYP);
+
+            var SIM = octet1[3] === '1' ? 'Simulated target report' : 'Actual target report';
+            var RDP = octet1[4] === '1' ? 'Report from RDP Chain 2' : 'Report from RDP Chain 1';
+            var SPI = octet1[5] === '1' ? 'Special Position Identification' : 'Absence of SPI';
+            var RAB = octet1[6] === '1' ? 'Report from field monitor (fixed transponder)' : 'Report from aircraft transponder';
+            var FX = octet1[7] === '1' ? 'Extension into first extent' : 'End of Data Item';
+
+            console.log('SIM: ' + SIM);
+            console.log('RDP: ' + RDP);
+            console.log('SPI: ' + SPI);
+            console.log('RAB: ' + RAB);
+            console.log('FX: ' + FX);            
+        }
+
+        if (octet2 != undefined) {
+            var TST = octet2[0] === '1' ? 'Test target report' : 'Real target report';
+            var ERR = octet2[1] === '1' ? 'Extended Range present' : 'No Extended Range';
+            var XPP = octet2[2] === '1' ? 'X-Pulse present' : 'No X-Pulse present';
+            var ME = octet2[3] === '1' ? 'Military emergency' : 'No military emergency';
+            var MI = octet2[4] === '1' ? 'Military identification' : 'No military identification';
+            var FOE_FRI = octet2.slice(4, 6);
+            var FX = octet2[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
+
+            console.log('TST: ' + TST);
+            console.log('ERR: ' + ERR);
+            console.log('XPP: ' + XPP);
+            console.log('ME: ' + ME);
+            console.log('MI: ' + MI);
+            console.log('FOE/FRI: ' + FOE_FRI);
+            console.log('FX: ' + FX);
+
+        }
+
+        if (octet3 != undefined) {
+            var ADSB = octet3[0] === '1' ? 'ADSB populated' : 'ADSB not populated';
+            var ADSB_VAL = octet3[1] === '1' ? 'available' : 'not available';
+            var SCN = octet3[2] === '1' ? 'SCN populated' : 'SCN not populated';
+            var SCN_VAL = octet3[3] === '1' ? 'available' : 'not available';
+            var PAI = octet3[4] === '1' ? 'PAI populated' : 'PAI not populated';
+            var PAI_VAL = octet3[5] === '1' ? 'available' : 'not available';
+            var SPARE = octet3[6] === '1' ? 'Spare Bit, not set to 0' : 'Spare Bit, set to 0';
+            var FX = octet3[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
+
+            console.log('ADSB: ' + ADSB);
+            console.log('ADSB_VAL: ' + ADSB_VAL);
+            console.log('SCN: ' + SCN);
+            console.log('SCN_VAL: ' + SCN_VAL);
+            console.log('PAI: ' + PAI);
+            console.log('PAI_VAL: ' + PAI_VAL);
+            console.log('SPARE: ' + SPARE);
+            console.log('FX: ' + FX);
         }
 
     }
@@ -354,11 +436,15 @@ export class CAT048 {
 
     }
 
-    async setTimeOfDay(buffer: string[]) {
-        var timeDay = buffer.slice(0, 24).join('');
-    
+    async setTimeOfDay(buffer: Buffer) {
+        var binaryBuffer1 = buffer[0].toString(2).padStart(8, '0');
+        var binaryBuffer2 = buffer[1].toString(2).padStart(8, '0');
+        var binaryBuffer3 = buffer[2].toString(2).padStart(8, '0');
+
+        var timeDay = binaryBuffer1 + binaryBuffer2 + binaryBuffer3;
+
         const decimalTimeDay = parseInt(timeDay, 2);
-        
+    
         console.log('Time-of-day (binario): ' + timeDay + ' -- (decimal): ' + decimalTimeDay/128 + 's');
     }
     
