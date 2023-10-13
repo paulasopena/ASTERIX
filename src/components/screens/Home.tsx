@@ -21,7 +21,7 @@ const Home = () => {
   return (
     <div>
       <p>This is the main Page</p>
-      {fileData}
+      <pre>{JSON.stringify(fileData, null, 2)}</pre>
     </div>
   );
 };

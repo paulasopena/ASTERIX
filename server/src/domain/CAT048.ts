@@ -141,6 +141,9 @@ export class CAT048 {
                         Format: Four-octet fixed length Data Item.
                     */
                     if (binaryArray[4] === '1') {
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 4);
+                        this.setMeasuredPositionPolarCoordinates(parameter);
+                        counter = counter + 4;
 
                     }
 
@@ -150,7 +153,9 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[3] === '1') {
-
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                        this.setMode3ACodeOctalRepresentation(parameter);
+                        counter = counter + 2;
                     }
 
                     /*
@@ -159,7 +164,9 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[2] === '1') {
-
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                        this.setFlightLevelBinaryRepresentation(parameter);
+                        counter = counter + 2;
                     }
 
                     /*
@@ -168,6 +175,59 @@ export class CAT048 {
                         Format: Compound Data Item.
                     */
                     if (binaryArray[1] === '1') {
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 1);
+                        var octet = parameter[0].toString(2).padStart(8, '0');
+
+                        var subfieldCounter = 0;
+                        
+                        if (octet[0] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var srl = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(srl, 0);
+                            subfieldCounter += 1
+                        }
+                        if (octet[1] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var srr = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(srr, 1);
+                            subfieldCounter += 1
+                        }
+                        if (octet[2] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var sam = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(sam, 2);
+                            subfieldCounter += 1
+                        }
+                        if (octet[3] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var prl = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(prl, 3);
+                            subfieldCounter += 1
+                        }
+                        if (octet[4] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var pam = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(pam, 4);
+                            subfieldCounter += 1
+                        }
+                        if (octet[5] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var rpd = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(rpd, 5);
+                            subfieldCounter += 1
+                        }
+                        if (octet[6] === '1') {
+                            var parameter = this.messages.subarray(numFSPEC + counter + subfieldCounter + 1, numFSPEC + counter + subfieldCounter + 2);
+                            var apd = parameter[0].toString(2).padStart(8, '0');
+                            this.setRadarPlotCharacteristics(apd, 6);
+                            subfieldCounter += 1
+                        }
+                        if (octet[7] === '1') {
+                            //End of primary subfield
+                        }
+
+                        var subfieldLength = subfieldCounter + 1;
+                        counter = counter + subfieldLength;
 
                     }
                     break;
@@ -313,6 +373,8 @@ export class CAT048 {
 
         console.log('SAC (binario): ' + binarySAC);
         console.log('SIC (binario): ' + binarySIC);
+
+        this.dataSourceIdentifier = {SAC: binarySAC, SIC: binarySIC};
     }
 
     async setTargetReportDescriptor(buffer: Buffer, numTarget: number) {
@@ -368,7 +430,9 @@ export class CAT048 {
             console.log('RDP: ' + RDP);
             console.log('SPI: ' + SPI);
             console.log('RAB: ' + RAB);
-            console.log('FX: ' + FX);            
+            console.log('FX: ' + FX);  
+            
+            this.targetReportDescriptor = {TYP: TYP, SIM: SIM, RDP: RDP, SPI: SPI, RAB: RAB};
         }
 
         if (octet2 != undefined) {
@@ -413,7 +477,11 @@ export class CAT048 {
     }
 
     async setMeasuredPositionPolarCoordinates(buffer: Buffer) {
+        var RHO = parseInt(buffer[0].toString(2).padStart(8, '0') + buffer[1].toString(2).padStart(8, '0'), 2);
+        console.log('RHO (decimal): ' + RHO + ' -- (nmi): ' + RHO/256 + ' nmi');
 
+        var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
+        console.log('THETA (decimal): ' + THETA + ' -- (º): ' + (THETA * (360 / Math.pow(2, 16))) + ' º');
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
@@ -421,10 +489,54 @@ export class CAT048 {
     }
 
     async setMode3ACodeOctalRepresentation(buffer: Buffer) {
+        var octet1 = buffer[0].toString(2).padStart(8, '0');
+        var octet2 = buffer[1].toString(2).padStart(8, '0');
+
+        var V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
+        var G = octet1[1] === '1' ? 'Garbled code' : 'Default';
+        var L = octet1[2] === '1' ? 'Mode-3/A code not extracted during the last scan' : 'Mode-3/A code derived from the reply of the transponder';
+        var bit13 = octet1[3] === '1' ? 'Spare bit not set to 0' : 'Spare bit set to 0';
+        var octalCode = octet1.slice(1) + octet2; 
+
+        function binaryToOctal(binaryString: string) {
+            while (binaryString.length % 3 !== 0) {
+                binaryString = '0' + binaryString;
+            }
+        
+            var octalString = '';
+            for (var i = 0; i < binaryString.length; i += 3) {
+                var octalDigit = parseInt(binaryString.slice(i, i + 3), 2).toString(8);
+                octalString += octalDigit;
+            }
+        
+            return octalString;
+        }
+
+        console.log('V: ' + V);
+        console.log('G: ' + G);
+        console.log('L: ' + L);
+        console.log('Bit13: ' + bit13);
+        console.log('Octal Code (binary): ' + octalCode + ' -- (octal): ' + binaryToOctal(octalCode));
 
     }
 
     async setFlightLevelBinaryRepresentation(buffer: Buffer) {
+        var octet1 = buffer[0].toString(2).padStart(8, '0');
+        var octet2 = buffer[1].toString(2).padStart(8, '0');
+
+        var V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
+        var G = octet1[1] === '1' ? 'Garbled code' : 'Default';
+        
+        var flightLevelBinary = octet1.slice(2, 8) + octet2;
+
+        console.log('V: ' + V);
+        console.log('G: ' + G);
+
+        var flightLevelDecimal = parseInt(flightLevelBinary, 2);
+
+        var flightLevelValue = flightLevelDecimal * 0.25;
+
+        console.log('Flight Level (Binary): ' + flightLevelBinary + ' -- (decimal): ' + flightLevelDecimal + '-- (1/4 FL): ' + flightLevelValue);
 
     }
 
@@ -432,9 +544,32 @@ export class CAT048 {
 
     }
 
-    async setRadarPlotCharacteristics(buffer: Buffer) {
+    async setRadarPlotCharacteristics(buffer: string, subfield: number) {
+        if (subfield === 0) {
+            var SRL = buffer;     
+            console.log('SRL (decimal): ' + parseInt(SRL, 2) + ' -- (dg): ' + parseInt(SRL, 2)*(360 / Math.pow(2, 13)) + ' dg');
 
+        } else if (subfield === 1) {
+            var SRR = buffer;    
+            console.log('SRR: ' + parseInt(SRR, 2));
+        } else if (subfield === 2) {
+            var SAM = buffer;    
+            console.log('SAM (binary): ' + SAM);
+        } else if (subfield === 3) {
+            var PRL = buffer;   
+            console.log('PRL (decimal): ' + parseInt(PRL, 2) + ' -- (dg): ' + parseInt(PRL, 2)*(360 / Math.pow(2, 13)) + ' dg');
+        } else if (subfield === 4) {
+            var PAM = buffer;    
+            console.log('PAM (binary): ' + PAM + ' -- (decimal): ' + parseInt(PAM, 2) + ' dBm');
+        } else if (subfield === 5) {
+            var RPD = buffer;    
+            console.log('RPD (decimal): ' + parseInt(RPD, 2) + ' -- (nmi): ' + parseInt(RPD, 2)/256 + ' nmi');
+        } else if (subfield === 6) {
+            var APD = buffer;    
+            console.log('APD (decimal): ' + parseInt(APD, 2) + ' -- (dg): ' + parseInt(APD, 2)*(360 / Math.pow(2, 14)) + ' dg');
+        }
     }
+    
 
     async setTimeOfDay(buffer: Buffer) {
         var binaryBuffer1 = buffer[0].toString(2).padStart(8, '0');
@@ -445,7 +580,7 @@ export class CAT048 {
 
         const decimalTimeDay = parseInt(timeDay, 2);
     
-        console.log('Time-of-day (binario): ' + timeDay + ' -- (decimal): ' + decimalTimeDay/128 + 's');
+        console.log('Time-of-day (binario): ' + timeDay + ' -- (decimal): ' + decimalTimeDay/128 + ' s');
     }
     
 
