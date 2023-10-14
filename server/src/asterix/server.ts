@@ -16,13 +16,10 @@ app.get('/readFile/:filePath', (req, res) => {
 
     const fileStructure = new File(filePath);
     fileStructure.readFile();
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 100; i++) {
       fileStructure.cat048[i].decodeMessages();
-
-      // Ahora puedes acceder a las propiedades de cat48 para este archivo
-      const dataSourceIdentifier = fileStructure.cat048[i].dataSourceIdentifier;
-      const targetReportDescriptor = fileStructure.cat048[i].targetReportDescriptor;
-      decodedData.push({ dataSourceIdentifier, targetReportDescriptor });
+      const message = fileStructure.cat048[i];
+      decodedData.push({ message });
     }
     res.json(decodedData);
   } catch (error) {

@@ -12,7 +12,7 @@ export class CAT048 {
     flightLevelBinaryRepresentation!: FlightLevelBinaryRepresentation;                      //090
     heightMeasuredBy3DRadar!: HeightMeasuredBy3DRadar;                                      //110
     radarPlotCharacteristics!: RadarPlotCharacteristics;                                    //130
-    timeOfDay!: number;   //(s)                                                             //140
+    timeOfDay!: string;   //(s)                                                             //140
     trackNumber!: number;                                                                   //161
     trackStatus!: TrackStatus;                                                              //170
     calculatedTrackVelocityPolarCoordinates!: PolarCoordinates;                             //200
@@ -24,6 +24,22 @@ export class CAT048 {
 
     constructor(messages: Buffer) {
         this.messages = messages;
+        this.dataSourceIdentifier = { SAC: '', SIC: '' };
+        this.targetReportDescriptor = { TYP: '', SIM: '', RDP: '', SPI: '', RAB: '' };
+        this.measuredPositionPolarCoordinates = { rho: 0, theta: 0 };
+        this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 };
+        this.mode3ACodeOctalRepresentation = { V: '', G: '', L: '', mode3A: '' };
+        this.flightLevelBinaryRepresentation = { V: '', G: '', flightLevel: 0 };
+        this.heightMeasuredBy3DRadar = { Height: '' };
+        this.radarPlotCharacteristics = { SRL: '', SRR: '', SAM: '', PRL: '', PAM: '', RPD: '', APD: '' };
+        this.timeOfDay = '';
+        this.trackNumber = 0;
+        this.trackStatus = { CNF: '', RAD: '', DOU: '', MAH: '', CDM: '' };
+        this.calculatedTrackVelocityPolarCoordinates = { rho: 0, theta: 0 };
+        this.aircraftAddress = '';
+        this.communicationsACASCapabilityFlightStatus = { COM: '', STAT: '', SI: '', MSSC: '', ARC: '', AIC: '', B1A: '', B1B: '' };
+        this.aircraftIdentification = ['', '', '', '', '', '', '', ''];
+        this.bDSRegisterData = { REP: '', BDSDATA: '', BDS1: '', BDS2: '' };
     }
 
     async decodeMessages() {
@@ -51,8 +67,6 @@ export class CAT048 {
             }
             i = i + 1;
         }
-
-        console.log('Number FSPEC: ' + numFSPEC);
 
         var j = 0;
         var counter = 3;
@@ -113,8 +127,6 @@ export class CAT048 {
                             }
                             i = i + 1;
                         }
-
-                        console.log('numTarget: ' + numTarget);
 
                         var parameter: Buffer;
 
@@ -368,13 +380,9 @@ export class CAT048 {
         var SAC = buffer[0];
         var SIC = buffer[1];
 
-        var binarySAC = SAC.toString(2).padStart(8, '0');
-        var binarySIC = SIC.toString(2).padStart(8, '0');
+        this.dataSourceIdentifier.SAC = SAC.toString(2).padStart(8, '0');
+        this.dataSourceIdentifier.SIC = SIC.toString(2).padStart(8, '0');
 
-        console.log('SAC (binario): ' + binarySAC);
-        console.log('SIC (binario): ' + binarySIC);
-
-        this.dataSourceIdentifier = {SAC: binarySAC, SIC: binarySIC};
     }
 
     async setTargetReportDescriptor(buffer: Buffer, numTarget: number) {
@@ -418,70 +426,44 @@ export class CAT048 {
                 TYP = 'Valor no reconocido'; 
             }
 
-            console.log('TYP: ' + TYP);
+            this.targetReportDescriptor.TYP = TYP;
 
-            var SIM = octet1[3] === '1' ? 'Simulated target report' : 'Actual target report';
-            var RDP = octet1[4] === '1' ? 'Report from RDP Chain 2' : 'Report from RDP Chain 1';
-            var SPI = octet1[5] === '1' ? 'Special Position Identification' : 'Absence of SPI';
-            var RAB = octet1[6] === '1' ? 'Report from field monitor (fixed transponder)' : 'Report from aircraft transponder';
-            var FX = octet1[7] === '1' ? 'Extension into first extent' : 'End of Data Item';
-
-            console.log('SIM: ' + SIM);
-            console.log('RDP: ' + RDP);
-            console.log('SPI: ' + SPI);
-            console.log('RAB: ' + RAB);
-            console.log('FX: ' + FX);  
-            
-            this.targetReportDescriptor = {TYP: TYP, SIM: SIM, RDP: RDP, SPI: SPI, RAB: RAB};
+            this.targetReportDescriptor.SIM = octet1[3] === '1' ? 'Simulated target report' : 'Actual target report';
+            this.targetReportDescriptor.RDP = octet1[4] === '1' ? 'Report from RDP Chain 2' : 'Report from RDP Chain 1';
+            this.targetReportDescriptor.SPI = octet1[5] === '1' ? 'Special Position Identification' : 'Absence of SPI';
+            this.targetReportDescriptor.RAB = octet1[6] === '1' ? 'Report from field monitor (fixed transponder)' : 'Report from aircraft transponder';
+            //this.targetReportDescriptor.fx = octet1[7] === '1' ? 'Extension into first extent' : 'End of Data Item'; 
         }
 
         if (octet2 != undefined) {
-            var TST = octet2[0] === '1' ? 'Test target report' : 'Real target report';
-            var ERR = octet2[1] === '1' ? 'Extended Range present' : 'No Extended Range';
-            var XPP = octet2[2] === '1' ? 'X-Pulse present' : 'No X-Pulse present';
-            var ME = octet2[3] === '1' ? 'Military emergency' : 'No military emergency';
-            var MI = octet2[4] === '1' ? 'Military identification' : 'No military identification';
-            var FOE_FRI = octet2.slice(4, 6);
-            var FX = octet2[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
-
-            console.log('TST: ' + TST);
-            console.log('ERR: ' + ERR);
-            console.log('XPP: ' + XPP);
-            console.log('ME: ' + ME);
-            console.log('MI: ' + MI);
-            console.log('FOE/FRI: ' + FOE_FRI);
-            console.log('FX: ' + FX);
-
+            this.targetReportDescriptor.TST = octet2[0] === '1' ? 'Test target report' : 'Real target report';
+            this.targetReportDescriptor.ERR = octet2[1] === '1' ? 'Extended Range present' : 'No Extended Range';
+            this.targetReportDescriptor.XPP = octet2[2] === '1' ? 'X-Pulse present' : 'No X-Pulse present';
+            this.targetReportDescriptor.ME = octet2[3] === '1' ? 'Military emergency' : 'No military emergency';
+            this.targetReportDescriptor.MI = octet2[4] === '1' ? 'Military identification' : 'No military identification';
+            this.targetReportDescriptor.FOE_FRI = octet2.slice(4, 6);
+            //var FX = octet2[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
         }
 
         if (octet3 != undefined) {
-            var ADSB = octet3[0] === '1' ? 'ADSB populated' : 'ADSB not populated';
-            var ADSB_VAL = octet3[1] === '1' ? 'available' : 'not available';
-            var SCN = octet3[2] === '1' ? 'SCN populated' : 'SCN not populated';
-            var SCN_VAL = octet3[3] === '1' ? 'available' : 'not available';
-            var PAI = octet3[4] === '1' ? 'PAI populated' : 'PAI not populated';
-            var PAI_VAL = octet3[5] === '1' ? 'available' : 'not available';
-            var SPARE = octet3[6] === '1' ? 'Spare Bit, not set to 0' : 'Spare Bit, set to 0';
-            var FX = octet3[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
-
-            console.log('ADSB: ' + ADSB);
-            console.log('ADSB_VAL: ' + ADSB_VAL);
-            console.log('SCN: ' + SCN);
-            console.log('SCN_VAL: ' + SCN_VAL);
-            console.log('PAI: ' + PAI);
-            console.log('PAI_VAL: ' + PAI_VAL);
-            console.log('SPARE: ' + SPARE);
-            console.log('FX: ' + FX);
+            this.targetReportDescriptor.ADSB_EP = octet3[0] === '1' ? 'ADSB populated' : 'ADSB not populated';
+            this.targetReportDescriptor.ADSB_VAL = octet3[1] === '1' ? 'On-Site ADS-B Information available' : 'On-Site ADS-B Information not available';
+            this.targetReportDescriptor.SCN_EP = octet3[2] === '1' ? 'SCN populated' : 'SCN not populated';
+            this.targetReportDescriptor.SCN_VAL = octet3[3] === '1' ? 'Surveillance Cluster Network Information available' : 'Surveillance Cluster Network Information not available';
+            this.targetReportDescriptor.PAI_EP = octet3[4] === '1' ? 'PAI populated' : 'PAI not populated';
+            this.targetReportDescriptor.PAI_VAL = octet3[5] === '1' ? 'Passive Acquisition Interface Information available' : 'Passive Acquisition Interface Information not available';
+            this.targetReportDescriptor.SPARE = octet3[6] === '1' ? 'Spare Bit, not set to 0' : 'Spare Bit, set to 0';
+            //var FX = octet3[7] === '1' ? 'Extension into next extent' : 'End of Data Item';
         }
 
     }
 
     async setMeasuredPositionPolarCoordinates(buffer: Buffer) {
         var RHO = parseInt(buffer[0].toString(2).padStart(8, '0') + buffer[1].toString(2).padStart(8, '0'), 2);
-        console.log('RHO (decimal): ' + RHO + ' -- (nmi): ' + RHO/256 + ' nmi');
+        this.measuredPositionPolarCoordinates.rho = RHO/256;
 
         var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
-        console.log('THETA (decimal): ' + THETA + ' -- (º): ' + (THETA * (360 / Math.pow(2, 16))) + ' º');
+        this.measuredPositionPolarCoordinates.theta = THETA * (360 / Math.pow(2, 16));
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
@@ -492,9 +474,9 @@ export class CAT048 {
         var octet1 = buffer[0].toString(2).padStart(8, '0');
         var octet2 = buffer[1].toString(2).padStart(8, '0');
 
-        var V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
-        var G = octet1[1] === '1' ? 'Garbled code' : 'Default';
-        var L = octet1[2] === '1' ? 'Mode-3/A code not extracted during the last scan' : 'Mode-3/A code derived from the reply of the transponder';
+        this.mode3ACodeOctalRepresentation.V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
+        this.mode3ACodeOctalRepresentation.G = octet1[1] === '1' ? 'Garbled code' : 'Default';
+        this.mode3ACodeOctalRepresentation.L = octet1[2] === '1' ? 'Mode-3/A code not extracted during the last scan' : 'Mode-3/A code derived from the reply of the transponder';
         var bit13 = octet1[3] === '1' ? 'Spare bit not set to 0' : 'Spare bit set to 0';
         var octalCode = octet1.slice(1) + octet2; 
 
@@ -512,11 +494,7 @@ export class CAT048 {
             return octalString;
         }
 
-        console.log('V: ' + V);
-        console.log('G: ' + G);
-        console.log('L: ' + L);
-        console.log('Bit13: ' + bit13);
-        console.log('Octal Code (binary): ' + octalCode + ' -- (octal): ' + binaryToOctal(octalCode));
+        this.mode3ACodeOctalRepresentation.mode3A = binaryToOctal(octalCode);
 
     }
 
@@ -524,19 +502,16 @@ export class CAT048 {
         var octet1 = buffer[0].toString(2).padStart(8, '0');
         var octet2 = buffer[1].toString(2).padStart(8, '0');
 
-        var V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
-        var G = octet1[1] === '1' ? 'Garbled code' : 'Default';
+        this.flightLevelBinaryRepresentation.V = octet1[0] === '1' ? 'Code not validated' : 'Code validated';
+        this.flightLevelBinaryRepresentation.G = octet1[1] === '1' ? 'Garbled code' : 'Default';
         
         var flightLevelBinary = octet1.slice(2, 8) + octet2;
-
-        console.log('V: ' + V);
-        console.log('G: ' + G);
 
         var flightLevelDecimal = parseInt(flightLevelBinary, 2);
 
         var flightLevelValue = flightLevelDecimal * 0.25;
 
-        console.log('Flight Level (Binary): ' + flightLevelBinary + ' -- (decimal): ' + flightLevelDecimal + '-- (1/4 FL): ' + flightLevelValue);
+        this.flightLevelBinaryRepresentation.flightLevel = flightLevelValue;
 
     }
 
@@ -547,26 +522,26 @@ export class CAT048 {
     async setRadarPlotCharacteristics(buffer: string, subfield: number) {
         if (subfield === 0) {
             var SRL = buffer;     
-            console.log('SRL (decimal): ' + parseInt(SRL, 2) + ' -- (dg): ' + parseInt(SRL, 2)*(360 / Math.pow(2, 13)) + ' dg');
+            this.radarPlotCharacteristics.SRL = parseInt(SRL, 2)*(360 / Math.pow(2, 13)) + ' dg';
 
         } else if (subfield === 1) {
             var SRR = buffer;    
-            console.log('SRR: ' + parseInt(SRR, 2));
+            this.radarPlotCharacteristics.SRR = parseInt(SRR, 2) + '';
         } else if (subfield === 2) {
             var SAM = buffer;    
-            console.log('SAM (binary): ' + SAM);
+            this.radarPlotCharacteristics.SAM = SAM + '';
         } else if (subfield === 3) {
             var PRL = buffer;   
-            console.log('PRL (decimal): ' + parseInt(PRL, 2) + ' -- (dg): ' + parseInt(PRL, 2)*(360 / Math.pow(2, 13)) + ' dg');
+            this.radarPlotCharacteristics.PRL = parseInt(PRL, 2)*(360 / Math.pow(2, 13)) + ' dg';
         } else if (subfield === 4) {
             var PAM = buffer;    
-            console.log('PAM (binary): ' + PAM + ' -- (decimal): ' + parseInt(PAM, 2) + ' dBm');
+            this.radarPlotCharacteristics.PAM = parseInt(PAM, 2) + ' dBm';
         } else if (subfield === 5) {
             var RPD = buffer;    
-            console.log('RPD (decimal): ' + parseInt(RPD, 2) + ' -- (nmi): ' + parseInt(RPD, 2)/256 + ' nmi');
+            this.radarPlotCharacteristics.RPD = parseInt(RPD, 2)/256 + ' nmi';
         } else if (subfield === 6) {
             var APD = buffer;    
-            console.log('APD (decimal): ' + parseInt(APD, 2) + ' -- (dg): ' + parseInt(APD, 2)*(360 / Math.pow(2, 14)) + ' dg');
+            this.radarPlotCharacteristics.APD = parseInt(APD, 2)*(360 / Math.pow(2, 14)) + ' dg';
         }
     }
     
@@ -580,7 +555,7 @@ export class CAT048 {
 
         const decimalTimeDay = parseInt(timeDay, 2);
     
-        console.log('Time-of-day (binario): ' + timeDay + ' -- (decimal): ' + decimalTimeDay/128 + ' s');
+        this.timeOfDay = decimalTimeDay/128 + ' s';
     }
     
 
@@ -632,13 +607,10 @@ interface TargetReportDescriptor {
     ME?: string;
     MI?: string;
     FOE_FRI?: string;
-    ADSB?: string;
     ADSB_EP?: string;
     ADSB_VAL?: string;
-    SCN?: string;
     SCN_EP?: string;
     SCN_VAL?: string;
-    PAI?: string;
     PAI_EP?: string;
     PAI_VAL?: string;
     SPARE?: string;
@@ -664,7 +636,7 @@ interface Mode3ACodeOctalRepresentation {
 interface FlightLevelBinaryRepresentation {
     V: string;
     G: string;
-    flightLevel: string;
+    flightLevel: number;
 }
 
 interface HeightMeasuredBy3DRadar {
