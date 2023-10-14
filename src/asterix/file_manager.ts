@@ -1,4 +1,3 @@
-import { File } from "../domain/File";
 import { SERVER_URL } from "../environments/environments";
 
 

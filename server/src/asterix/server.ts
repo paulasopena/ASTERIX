@@ -12,10 +12,16 @@ app.get('/readFile/:filePath', (req, res) => {
   try {
     const filePath = 'src/example_data/' + req.params.filePath;
 
+    const decodedData = [];
+
     const fileStructure = new File(filePath);
     fileStructure.readFile();
-    fileStructure.cat048[0].decodeMessages();
-    res.send(fileStructure.cat048);
+    for (let i = 0; i < 100; i++) {
+      fileStructure.cat048[i].decodeMessages();
+      const message = fileStructure.cat048[i];
+      decodedData.push({ message });
+    }
+    res.json(decodedData);
   } catch (error) {
     console.error('Error reading file:', error);
     res.status(500).send('Internal Server Error');
