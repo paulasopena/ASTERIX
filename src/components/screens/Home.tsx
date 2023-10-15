@@ -89,6 +89,35 @@ const Home = () => {
               <li>RPD: {message.message.radarPlotCharacteristics.RPD}</li>
               <li>APD: {message.message.radarPlotCharacteristics.APD}</li>
             </ul>
+            <p>Aircraft address:</p>
+            <ul>
+              <li>{message.message.aircraftAddress}</li>
+            </ul>
+            <p>Aircraft identifier:</p>
+            <ul>
+              <li>{message.message.aircraftIdentification}</li>
+            </ul>
+            <p>Track number:</p>
+            <ul>
+              <li>{message.message.trackNumber}</li>
+            </ul>
+            <p>Calculated Track Velocity in Polar Coordinates:</p>
+            <ul>
+              <li>Ground speed (kt): {message.message.calculatedTrackVelocityPolarCoordinates.rho}</li>
+              <li>Heading: {message.message.calculatedTrackVelocityPolarCoordinates.theta}</li>
+            </ul>
+            <p>Track Status:</p>
+            <ul>
+              <li>CNF: {message.message.trackStatus.CNF}</li>
+              <li>RAD: {message.message.trackStatus.RAD}</li>
+              <li>DOU: {message.message.trackStatus.DOU}</li>
+              <li>MAH: {message.message.trackStatus.MAH}</li>
+              <li>CDM: {message.message.trackStatus.CDM}</li>
+              <li>TRE: {message.message.trackStatus.TRE}</li>
+              <li>GHO: {message.message.trackStatus.GHO}</li>
+              <li>SUP: {message.message.trackStatus.SUP}</li>
+              <li>TCC: {message.message.trackStatus.TCC}</li>
+            </ul>
           </li>
         ))}
       </ul>
