@@ -30,7 +30,7 @@ export class CAT048 {
         this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 };
         this.mode3ACodeOctalRepresentation = { V: '', G: '', L: '', mode3A: '' };
         this.flightLevelBinaryRepresentation = { V: '', G: '', flightLevel: 0 };
-        this.heightMeasuredBy3DRadar = { Height: '' };
+        this.heightMeasuredBy3DRadar = { Height: 0 };
         this.radarPlotCharacteristics = { SRL: '', SRR: '', SAM: '', PRL: '', PAM: '', RPD: '', APD: '' };
         this.timeOfDay = '';
         this.trackNumber = 0;
@@ -316,31 +316,50 @@ export class CAT048 {
                 case 2:
 
                     /*
-                        No s'ha d'analitzar
+                        No s'ha d'analitzar (I048/210)
+                        Four-octet fixed length Data Item.
                     */
                     if (binaryArray[7] === '1') {
-                        
+                        counter = counter + 4;
                     }
 
                     /*
-                        No s'ha d'analitzar
+                        No s'ha d'analitzar (I048/030)
+                        Variable length Data Item comprising a first part of one-octet, followed by one-octet extents as necessary.
                     */
                     if (binaryArray[6] === '1') {
+                        var numTarget = 0;
+                        var moreTarget = true;
+                        var i = 0;
 
+                        while (moreTarget) { 
+                            var octet1  = this.messages.readUInt8(numFSPEC + counter + i).toString(2).padStart(8, '0').split('');
+                            if (octet1[7] === '1') {
+                                numTarget += 1;
+                            } else {
+                                numTarget += 1; 
+                                moreTarget = false;
+                            }               
+                            i = i + 1;
+                        }
+
+                        counter = counter + numTarget;
                     }
 
                     /*
-                        No s'ha d'analitzar
+                        No s'ha d'analitzar (I048/080)
+                        Two-octet fixed length Data Item.
                     */
                     if (binaryArray[5] === '1') {
-
+                        counter = counter + 2;
                     }
 
                     /*
-                        No s'ha d'analitzar
+                        No s'ha d'analitzar (I048/100)
+                        Four-octet fixed length Data Item.
                     */
                     if (binaryArray[4] === '1') {
-
+                        counter = counter + 4;
                     }
 
                     /*
@@ -350,14 +369,22 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[3] === '1') {
-
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                        this.setHeightMeasuredBy3DRadar(parameter)
+                        counter = counter + 2;
                     }
 
                     /*
-                        No s'ha d'analitzar
+                        No s'ha d'analitzar (I048/120)
+                        Compound Data Item, comprising a primary subfield of one octet, followed by one of the two defined subfields.
                     */
                     if (binaryArray[2] === '1') {
-
+                        var octet1  = this.messages.readUInt8(numFSPEC + counter).toString(2).padStart(8, '0').split('');
+                        if (octet1[0] === '1') {
+                            counter = counter + 3;
+                        } else if (octet1[1] === '1') {
+                            counter = counter + 8;
+                        }
                     }
 
                     /*
@@ -367,7 +394,9 @@ export class CAT048 {
                         Format: Two-octet fixed length Data Item.
                     */
                     if (binaryArray[1] === '1') {
-
+                        var parameter = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 2);
+                        this.setCommunicationsACASCapabilityFlightStatus(parameter)
+                        counter = counter + 2;
                     }
                     break;
             }
@@ -516,7 +545,16 @@ export class CAT048 {
     }
 
     async setHeightMeasuredBy3DRadar(buffer: Buffer) {
+        var octet1 = buffer[0].toString(2).padStart(8, '0');
+        var octet2 = buffer[1].toString(2).padStart(8, '0');
+        
+        var heightMeasuredBinary = octet1.slice(2, 8) + octet2;
 
+        var heightMeasuredDecimal = parseInt(heightMeasuredBinary, 2);
+
+        var heightMeasuredFeet = heightMeasuredDecimal * 25;
+
+        this.heightMeasuredBy3DRadar.Height = heightMeasuredFeet;
     }
 
     async setRadarPlotCharacteristics(buffer: string, subfield: number) {
@@ -576,7 +614,69 @@ export class CAT048 {
     }
 
     async setCommunicationsACASCapabilityFlightStatus(buffer: Buffer) {
+        var octet1 = buffer[0].toString(2).padStart(8, '0');
+        var octet2 = buffer[1].toString(2).padStart(8, '0');
 
+        var COM = octet1.slice(0, 3);
+        var COM_int = parseInt(COM, 2);
+        switch(COM_int) {
+            case 0:
+                this.communicationsACASCapabilityFlightStatus.COM = 'No communications capability (surveillance only)';
+                break;
+            case 1:
+                this.communicationsACASCapabilityFlightStatus.COM = 'Comm. A and Comm. B capability';
+                break;
+            case 2:
+                this.communicationsACASCapabilityFlightStatus.COM = 'Comm. A, Comm. B and Uplink ELM';
+                break;
+            case 3:
+                this.communicationsACASCapabilityFlightStatus.COM = 'Comm. A, Comm. B, Uplink ELM and Downlink ELM';
+                break;
+            case 4:
+                this.communicationsACASCapabilityFlightStatus.COM = 'Level 5 Transponder capability';
+                break;
+            case 5:
+            case 6:
+            case 7:
+                this.communicationsACASCapabilityFlightStatus.COM = 'Not assigned';
+                break;
+        }
+
+        var STAT = octet1.slice(3, 6);
+        var STAT_int = parseInt(STAT, 2);
+        switch(STAT_int) {
+            case 0:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'No alert, no SPI, aircraft airborne';
+                break;
+            case 1:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'No alert, no SPI, aircraft on ground';
+                break;
+            case 2:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'Alert, no SPI, aircraft airborne';
+                break;
+            case 3:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'Alert, no SPI, aircraft on ground';
+                break;
+            case 4:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'Alert, SPI, aircraft airborne or on ground';
+                break;
+            case 5:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'No alert, SPI, aircraft airborne or on ground';
+                break;
+            case 6:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'Not assigned';
+                break;
+            case 7:
+                this.communicationsACASCapabilityFlightStatus.STAT = 'Unknown';
+                break;
+        }
+        
+        this.communicationsACASCapabilityFlightStatus.SI = octet1[7] === '1' ? 'II-Code Capable' : 'SI-Code Capable';
+        this.communicationsACASCapabilityFlightStatus.MSSC = octet2[0] === '1' ? 'Yes' : 'No';
+        this.communicationsACASCapabilityFlightStatus.ARC = octet2[1] === '1' ? '25 ft resolution' : '100 ft resolution';
+        this.communicationsACASCapabilityFlightStatus.AIC = octet2[2] === '1' ? 'Yes' : 'No';
+        this.communicationsACASCapabilityFlightStatus.B1A = octet2[3];
+        this.communicationsACASCapabilityFlightStatus.B1B = octet2.slice(4, 8);
     }
 
     async setAircraftIdentification(buffer: Buffer) {
@@ -640,7 +740,7 @@ interface FlightLevelBinaryRepresentation {
 }
 
 interface HeightMeasuredBy3DRadar {
-    Height: string;
+    Height: number;
 }
 
 interface RadarPlotCharacteristics {

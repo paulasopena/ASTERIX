@@ -89,6 +89,21 @@ const Home = () => {
               <li>RPD: {message.message.radarPlotCharacteristics.RPD}</li>
               <li>APD: {message.message.radarPlotCharacteristics.APD}</li>
             </ul>
+            <p>Height Measured by a 3D Radar</p>
+            <ul>
+              <li>Height: {message.message.heightMeasuredBy3DRadar.Height}</li>
+            </ul>
+            <p>Communications/ACAS Capability and Flight Status</p>
+            <ul>
+              <li>COM: {message.message.communicationsACASCapabilityFlightStatus.COM}</li>
+              <li>STAT: {message.message.communicationsACASCapabilityFlightStatus.STAT}</li>
+              <li>SI: {message.message.communicationsACASCapabilityFlightStatus.SI}</li>
+              <li>MSSC: {message.message.communicationsACASCapabilityFlightStatus.MSSC}</li>
+              <li>ARC: {message.message.communicationsACASCapabilityFlightStatus.ARC}</li>
+              <li>AIC: {message.message.communicationsACASCapabilityFlightStatus.AIC}</li>
+              <li>B1A: BDS 1,0 bit 16 = {message.message.communicationsACASCapabilityFlightStatus.B1A}</li>
+              <li>B1B: BDS 1,0 bits 37/40 = {message.message.communicationsACASCapabilityFlightStatus.B1B}</li>
+            </ul>
           </li>
         ))}
       </ul>
