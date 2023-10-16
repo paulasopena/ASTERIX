@@ -101,6 +101,11 @@ const Home = () => {
             <ul>
               <li>{message.message.trackNumber}</li>
             </ul>
+            <p>Calculated position cartesian coordinates:</p>
+            <ul>
+              <li>X: {message.message.calculatedPositionCartesianCoordinates.x}</li>
+              <li>Y: {message.message.calculatedPositionCartesianCoordinates.y}</li>
+            </ul>
             <p>Calculated Track Velocity in Polar Coordinates:</p>
             <ul>
               <li>Ground speed (kt): {message.message.calculatedTrackVelocityPolarCoordinates.rho}</li>

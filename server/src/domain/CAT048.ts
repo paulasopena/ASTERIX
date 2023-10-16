@@ -505,27 +505,48 @@ export class CAT048 {
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
         const XcomponentBits=buffer[0].toString(2).padStart(8,'0') + buffer[1].toString(2).padStart(8,'0');
         const YcomponentBits=buffer[2].toString(2).padStart(8,'0') + buffer[3].toString(2).padStart(8,'0');
-
+        
+        function twoComplementOfChainBits(chainBits: string): number{
+            const signChain=chainBits.substring(0,1);
+            const numberChain=chainBits.substring(1);
+            var finalNumberChain='';
+            var isNegative=false;
+            if(signChain=='1'){
+                isNegative=true;        
+            }
+        else{
+            var invertedBits='';
+            // Inverting all the bit chain first
+            for(let i=0; i<numberChain.length; i+=1){
+                numberChain[i]==='0' ? invertedBits=invertedBits+'1': invertedBits=invertedBits+'0';   
+            }
+            // Adding 1 to all the chain bit inversed
+            let carry=1;
+            
+            for (let j = invertedBits.length - 1; j >= 0; j--) {
+                const sum = Number(invertedBits[j]) + carry;
+                finalNumberChain = (sum % 2) + finalNumberChain;
+                carry = Math.floor(sum / 2);
+              }
+            }
+            if(isNegative){
+                return(-parseInt(finalNumberChain, 2));
+            }
+            else{
+                return(parseInt(finalNumberChain, 2));
+            }
+            
+        }
+        this.calculatedPositionCartesianCoordinates.x=twoComplementOfChainBits(XcomponentBits);
+        this.calculatedPositionCartesianCoordinates.y=twoComplementOfChainBits(YcomponentBits);
+        
 
     }
     async twoComplementOfChainBits(chainBits: string){
-        /*
-        const signChain=chainBits.substring(0,1);
-        const numberChain=chainBits.substring(1);
-        var finalNumberChain='';
-        if(signChain=='0'){
-            finalNumberChain=numberChain;        
-        }
-        else{
-            var actualBit=''
-            for(let i=0; i<numberChain.length; i+=1){
-                actualBit=numberChain[i];
-                if(actualBit==='1' && i!==numberChain.length-1){
-                    numberChain[i]='0';
-                }
-            }
-        }
-        */
+        
+        
+        
+        
     }
 
     async setMode3ACodeOctalRepresentation(buffer: Buffer) {
