@@ -2,10 +2,14 @@ import React from "react";
 import { useEffect, useState } from 'react';
 import { fetchBytes } from "../../asterix/file_manager";
 import { Message } from "../../domain/Message";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [fileData, setFileData] = useState<Message[]>([]);
-
+  const navigation = useNavigate();
+  const navigateToTrial = async () => {
+      navigation('/home2');
+  }
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -24,7 +28,7 @@ const Home = () => {
 
   return (
     <div>
-      <p>This is the main Page</p>
+      <button onClick={navigateToTrial}>TABLE</button>
       <ul style={{textAlign: 'left'}}>
         {fileData.map((message, index) => (
           <li key={index}>

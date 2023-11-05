@@ -73,7 +73,7 @@ export class CAT048 {
         var j = 0;
         var counter = 3;
 
-        while (j <= numFSPEC) {
+        while (j < numFSPEC) {
             var currentByte  = this.messages.readUInt8(j + 3);
             const binaryArray = currentByte.toString(2).padStart(8, '0').split('').reverse();       // [7,6,5,4,3,2,1,0]
 
@@ -284,14 +284,14 @@ export class CAT048 {
                         const numberBDS=parseInt(bitsRepetition, 2);
                         console.log(numberBDS);
                         counter=counter+1;
-                        /*
+                        
                         for(let i=1; i<=numberBDS; i+=1){
                             // var parameterBDSData = this.messages.subarray(numFSPEC+counter, numFSPEC+counter+7);
                             var parameterBDSRegister=this.messages.subarray(numFSPEC+counter+7, numFSPEC+counter+8);
                             this.setModeBDS(parameterBDSRegister);
                             //counter=counter+8;
                         }
-                        */
+                        
                         counter=counter+numberBDS*8;
                     }
 
@@ -930,16 +930,32 @@ export class CAT048 {
     async setModeBDS(buffer:Buffer){
         const chainBitsBDSRegister=buffer[0].toString(2).padStart(8, '0');
 
-        const registerBDS1=chainBitsBDSRegister.substring(0,3);
-        const decimalValueBDS1 = parseInt(registerBDS1, 2);
-        const hexadecimalStringBDS1 = decimalValueBDS1.toString(16);
-        const resultBDS1 = hexadecimalStringBDS1.toUpperCase();
-        const registerBDS2=chainBitsBDSRegister.substring(4,7);
-        const decimalValueBDS2 = parseInt(registerBDS2, 2);
-        const hexadecimalStringBDS2 = decimalValueBDS2.toString(16);
-        const resultBDS2 = hexadecimalStringBDS2.toUpperCase();
-        console.log("BDS 1: "+resultBDS1);
-        console.log("BDS 2: "+resultBDS2);
+        const registerBDS1=chainBitsBDSRegister.substring(0,4);
+        console.log(registerBDS1);
+        const hex = binaryToHex(registerBDS1);
+        const decimal =hexToDecimal(hex);
+        console.log(decimal);
+        
+        function binaryToHex(binary: string): string {
+            
+            while (binary.length % 4 !== 0) {
+              binary = '0' + binary;
+            }
+          
+            let hex = '';
+            for (let i = 0; i < binary.length; i += 4) {
+              const chunk = binary.substr(i, 4);
+              const decimalValue = parseInt(chunk, 2);
+              const hexValue = decimalValue.toString(16).toUpperCase();
+              hex += hexValue;
+            }
+          
+            return hex;
+          }
+          function hexToDecimal(hex: string): number {
+            const decimalValue = parseInt(hex, 16);
+            return decimalValue;
+          }
     }
 
 
