@@ -20,7 +20,10 @@ export class CAT048 {
     communicationsACASCapabilityFlightStatus!: CommunicationsACASCapabilityFlightStatus;    //230
     //aircraftIdentification!: string[];   //(8 characters)                                   //240
     aircraftIdentification!: string; 
-    bDSRegisterData!: BDSRegisterData;                                                      //250
+    BDSRegisterData!: BDSRegisterData;                                                      //250
+    modeBDS4!: BDSCode4;
+    modeBDS5!: BDSCode5;
+    modeBDS6!: BDSCode6; 
 
 
     constructor(messages: Buffer) {
@@ -41,7 +44,46 @@ export class CAT048 {
         this.communicationsACASCapabilityFlightStatus = { COM: '', STAT: '', SI: '', MSSC: '', ARC: '', AIC: '', B1A: '', B1B: '' };
         // this.aircraftIdentification = ['', '', '', '', '', '', '', ''];
         this.aircraftIdentification = '';
-        this.bDSRegisterData = { REP: '', BDSDATA: '', BDS1: '', BDS2: '' };
+        this.modeBDS4 = {   MCPstatus: 0, //1 
+                            MCPaltitude: 0,
+                            FMSstatus: 0, 
+                            FMSaltitude: 0, 
+                            BPSstatus: 0, 
+                            BPSpressure: 0, 
+                            modeStatus: 0, 
+                            VNAV: 0, 
+                            ALTHold: 0, 
+                            approach: 0, 
+                            targetAltStatus: 0, 
+                            targetAltSource: 0
+                        };
+        this.modeBDS5 = {   RASstatus: 0, 
+                            RollAngle: 0,
+                            TTAstatus: 0, 
+                            TrueTrackAngle: 0,
+                            GSstatus: 0,
+                            GroundSpeed: 0,
+                            TARstatus: 0,
+                            TrackAngleRate: 0, 
+                            TAstatus: 0,
+                            TrueAirspeed: 0
+                        };
+        this.modeBDS6 = {   HDGstatus: 0, 
+                            HDG: 0,
+                            IASstatus: 0,
+                            IAS: 0,
+                            MACHstatus: 0,
+                            MACH: 0,
+                            BARstatus: 0, 
+                            BAR: 0, 
+                            IVVstatus: 0, 
+                            IVV: 0 
+                        };
+        this.BDSRegisterData = {modeS: '', 
+            bdsCode4: this.modeBDS4,
+            bdsCode5: this.modeBDS5,
+            bdsCode6: this.modeBDS6 };
+        
     }
 
     async decodeMessages() {
@@ -282,14 +324,25 @@ export class CAT048 {
                         var parameterRepetition = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 1);
                         const bitsRepetition = parameterRepetition[0].toString(2).padStart(8, '0');
                         const numberBDS=parseInt(bitsRepetition, 2);
-                        console.log(numberBDS);
+                        console.log("Number BDSs of message:" +numberBDS);
                         counter=counter+1;
-                        
-                        for(let i=1; i<=numberBDS; i+=1){
-                            // var parameterBDSData = this.messages.subarray(numFSPEC+counter, numFSPEC+counter+7);
-                            var parameterBDSRegister=this.messages.subarray(numFSPEC+counter+7, numFSPEC+counter+8);
-                            this.setModeBDS(parameterBDSRegister);
-                            //counter=counter+8;
+                        let byteBDS=counter; 
+                        for(let i=0; i<numberBDS; i+=1){
+                            var parameterBDSData = this.messages.subarray(numFSPEC+counter, numFSPEC+counter+8);
+                            const binaryArray = currentByte.toString(2).padStart(8, '0').split('').reverse();       // [7,6,5,4,3,2,1,0]
+
+                            const bitsBDSData = parameterBDSData[0].toString(2).padStart(8, '0').split('').reverse();
+                            const bitsBDSData2 = parameterBDSData[1].toString(2).padStart(8, '0');
+                            const bitsBDSData3 = parameterBDSData[2].toString(2).padStart(8, '0');
+                            const bitsBDSData4 = parameterBDSData[3].toString(2).padStart(8, '0');
+                            const bitsBDSData5 = parameterBDSData[4].toString(2).padStart(8, '0');
+                            const bitsBDSData6 = parameterBDSData[5].toString(2).padStart(8, '0');
+                            const bitsBDSData7 = parameterBDSData[6].toString(2).padStart(8, '0');
+                            const bitsBDSData8 = parameterBDSData[7].toString(2).padStart(8, '0');
+                            const chainBitsDataBDS=bitsBDSData+bitsBDSData2+bitsBDSData3+bitsBDSData4+bitsBDSData5+bitsBDSData6+bitsBDSData6+bitsBDSData7;
+                            var parameterBDSRegister=this.messages.subarray(numFSPEC+byteBDS+7, numFSPEC+byteBDS+8);
+                            this.setModeBDS(parameterBDSRegister,chainBitsDataBDS);
+                            byteBDS=byteBDS+8;
                         }
                         
                         counter=counter+numberBDS*8;
@@ -438,6 +491,7 @@ export class CAT048 {
             }
 
             j += 1;
+            
         }
     }
 
@@ -927,14 +981,42 @@ export class CAT048 {
         //console.log(chainBitsBDSID);
     }
     
-    async setModeBDS(buffer:Buffer){
-        const chainBitsBDSRegister=buffer[0].toString(2).padStart(8, '0');
-
+    async setModeBDS(bufferRegister:Buffer, chainBitsData: string){
+        const chainBitsBDSRegister=bufferRegister[0].toString(2).padStart(8, '0');
         const registerBDS1=chainBitsBDSRegister.substring(0,4);
-        console.log(registerBDS1);
-        const hex = binaryToHex(registerBDS1);
-        const decimal =hexToDecimal(hex);
-        console.log(decimal);
+        const registerBDS2=chainBitsBDSRegister.substring(4,8);
+        
+        const hexBDS1 = binaryToHex(registerBDS1);
+        const hexBDS2 = binaryToHex(registerBDS2);
+        
+        const decimalBDS1 =hexToDecimal(hexBDS1);
+        const decimalBDS2 =hexToDecimal(hexBDS2);
+        
+        this.BDSRegisterData.modeS=this.BDSRegisterData.modeS+"BDS: "+decimalBDS1+","+decimalBDS2;
+        const decodeModeBDS4 = (chainBits: string) =>{
+            const MCPStatus = chainBits.substring(0,1);
+            console.log("MCP status: "+MCPStatus);
+            this.BDSRegisterData.bdsCode4.MCPstatus=parseInt(MCPStatus,2);
+            const MCPaltitudeBits=chainBits.substring(1,12);
+            const MCPaltitude=parseInt(MCPaltitudeBits, 2);
+            console.log("MCP altitude: "+MCPaltitude);
+            
+        }
+        const decodeModeBDS5 = (chainBits: string) => {
+
+        }
+        const decodeModeBDS6 =(chainBits: string) => {
+
+        }
+        if(decimalBDS1===4){
+            decodeModeBDS4(chainBitsData); 
+        }
+        else if(decimalBDS1===5){
+            decodeModeBDS5(chainBitsData);
+        }
+        else{
+            decodeModeBDS6(chainBitsData);
+        }
         
         function binaryToHex(binary: string): string {
             
@@ -956,6 +1038,8 @@ export class CAT048 {
             const decimalValue = parseInt(hex, 16);
             return decimalValue;
           }
+        
+          
     }
 
 
@@ -1048,8 +1132,46 @@ interface CommunicationsACASCapabilityFlightStatus {
 }
 
 interface BDSRegisterData {
-    REP: string;
-    BDSDATA: string;
-    BDS1: string;
-    BDS2: string;
+    modeS: string;
+    bdsCode4: BDSCode4;
+    bdsCode5: BDSCode5;
+    bdsCode6: BDSCode6;
+}
+interface BDSCode4{
+    MCPstatus: number; //1 
+    MCPaltitude: number; //2-13
+    FMSstatus: number; //14
+    FMSaltitude: number; //15-26
+    BPSstatus: number; //27
+    BPSpressure: number; //28-39
+    modeStatus: number; //48
+    VNAV: number; //49
+    ALTHold: number; //50
+    approach: number; //51
+    targetAltStatus: number; //54
+    targetAltSource: number; //55-56
+}
+interface BDSCode5{
+    RASstatus: number; 
+    RollAngle: number; 
+    TTAstatus: number; 
+    TrueTrackAngle: number; 
+    GSstatus: number; 
+    GroundSpeed: number;
+    TARstatus:number;  
+    TrackAngleRate: number; 
+    TAstatus: number; 
+    TrueAirspeed: number;
+}
+interface BDSCode6{
+    HDGstatus: number; 
+    HDG: number; 
+    IASstatus: number; 
+    IAS: number; 
+    MACHstatus: number; 
+    MACH: number; 
+    BARstatus: number; 
+    BAR: number; 
+    IVVstatus: number; 
+    IVV: number; 
 }

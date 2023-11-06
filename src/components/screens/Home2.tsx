@@ -158,37 +158,39 @@ const Home2 = () => {
                 <td>{message.message.radarPlotCharacteristics.APD}</td>
                 <td>{message.message.aircraftAddress}</td>
                 <td>{message.message.aircraftIdentification}</td>
-                <td>Mode S</td>
-                <td>MCPSTATUS</td>
-                <td>MCP ALT</td>
-                <td>FMSSTATUS</td>
-                <td>FMS ALT</td>
-                <td>BPSTATUS</td>
-                <td>BP</td>
-                <td>Mode Status</td>
-                <td>VNAV</td>
-                <td>APP</td>
-                <td>TARGETALT STATUS</td>
-                <td>TARGETALT SOURCE</td>
-                <td>RASTATUS</td>
-                <td>RA</td>
-                <td>TTASTATUS</td>
-                <td>TTA</td>
-                <td>GSSTATUS</td>
-                <td>GS</td>
-                <td>TARSTATUS</td>
-                <td>TAR</td>
-                <td>TASSTATUS</td>
-                <td>TAS</td>
-                <td>HDGSTATUS</td>
-                <td>HDG</td>
-                <td>IASSTATUS</td>
-                <td>IAS</td>
-                <td>MACHSTATUS</td>
-                <td>MACH</td>
-                <td>BARSTATUS</td>
-                <td>BAR</td>
-                <td>IVVSTATUS</td>
+                <td>{message.message.BDSRegisterData.modeS}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.MCPstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.MCPaltitude}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.FMSstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.FMSaltitude}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.BPSstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.BPSpressure}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.modeStatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.VNAV}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.ALTHold}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.approach}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.targetAltStatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode4.targetAltSource}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.RASstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.RollAngle}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TTAstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TrueTrackAngle}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.GSstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.GroundSpeed}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TARstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TrackAngleRate}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TAstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode5.TrueAirspeed}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.HDGstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.HDG}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.IASstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.IAS}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.MACHstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.MACH}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.BARstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.BAR}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.IVVstatus}</td>
+                <td>{message.message.BDSRegisterData.bdsCode6.IVV}</td>
                 <td>{message.message.trackNumber}</td>
                 <td>{message.message.calculatedPositionCartesianCoordinates.x}</td>
                 <td>{message.message.calculatedPositionCartesianCoordinates.y}</td>
