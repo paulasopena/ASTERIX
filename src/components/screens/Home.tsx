@@ -10,10 +10,14 @@ const Home = () => {
   const navigateToTrial = async () => {
       navigation('/home2');
   }
+  const navigateToPicker = async () => {
+    navigation('/picker');
+  }
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchBytes('230502-est-080001_BCN_60MN_08_09.ast');
+        const fileName = localStorage.getItem('nombreArchivo');
+        const data = await fetchBytes(fileName ?? '');
         if (data != undefined) {
           const parsedData = JSON.parse(data);
           setFileData(parsedData);
@@ -29,6 +33,7 @@ const Home = () => {
   return (
     <div>
       <button onClick={navigateToTrial}>TABLE</button>
+      <button onClick={navigateToPicker}>PICK DOCUMENT</button>
       <ul style={{textAlign: 'left'}}>
         {fileData.map((message, index) => (
           <li key={index}>
