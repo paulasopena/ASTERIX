@@ -1051,10 +1051,173 @@ export class CAT048 {
             
         }
         const decodeModeBDS5 = (chainBits: string) => {
+            console.log(chainBits)
+            var RASstatus = chainBits.substring(0,1);
+            this.BDSRegisterData.bdsCode5.RASstatus = parseInt(RASstatus, 2);
 
+            if (RASstatus == '1') {
+                var sign = chainBits.substring(1,2);
+                var RollAngle = chainBits.substring(2,11);
+                var angle = (sign === '1' ? 90 : 0);
+
+                for (var i = 0; i < RollAngle.length; i++) {
+                    if (RollAngle.charAt(i) === '1') {
+                        angle += (sign === '1' ? -1 : 1) * 45 / Math.pow(2, i);
+                    }
+                }
+                if (angle != 90 && angle != -90){
+                    this.BDSRegisterData.bdsCode5.RollAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                }
+            }
+            
+            var TTAstatus = chainBits.substring(11,12);
+            this.BDSRegisterData.bdsCode5.TTAstatus = parseInt(TTAstatus, 2);
+
+            if (TTAstatus == '1') {
+                var sign = chainBits.substring(12,13);
+                var TrueTrackAngle = chainBits.substring(13,23);
+                var angle = (sign === '1' ? 180 : 0);
+
+                for (var i = 0; i < TrueTrackAngle.length; i++) {
+                    if (TrueTrackAngle.charAt(i) === '1') {
+                        angle += (sign === '1' ? -1 : 1) * 90 / Math.pow(2, i);
+                    }
+                }
+                if (angle != 180 && angle != 180){
+                    this.BDSRegisterData.bdsCode5.TrueTrackAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                }
+            }
+
+            var GSstatus = chainBits.substring(23,24);
+            this.BDSRegisterData.bdsCode5.GSstatus = parseInt(GSstatus, 2);
+
+            if (GSstatus == '1') {
+                var GroundSpeed = chainBits.substring(24,34);
+                var kt = 0;
+
+                for (var i = 0; i < GroundSpeed.length; i++) {
+                    if (GroundSpeed.charAt(i) === '1') {
+                        kt += 1024 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode5.GroundSpeed = parseFloat(kt.toFixed(3));
+            }
+
+            var TARstatus = chainBits.substring(34,35);
+            this.BDSRegisterData.bdsCode5.TARstatus = parseInt(TARstatus, 2);
+
+            if (TARstatus == '1') {
+                var sign = chainBits.substring(35,36);
+                var TrackAngleRate = chainBits.substring(36,45);
+                var angle = (sign === '1' ? 16 : 0);
+
+                for (var i = 0; i < TrackAngleRate.length; i++) {
+                    if (TrackAngleRate.charAt(i) === '1') {
+                        angle += (sign === '1' ? -1 : 1) * 8 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode5.TrackAngleRate = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+            }
+
+            var TAstatus = chainBits.substring(45,46);
+            this.BDSRegisterData.bdsCode5.TAstatus = parseInt(TAstatus, 2);
+
+            if (TAstatus == '1') {
+                var TrueAirspeed = chainBits.substring(46,56);
+                console.log("HHEEEYY :" + TrueAirspeed)
+                var kt = 0;
+
+                for (var i = 0; i < TrueAirspeed.length; i++) {
+                    if (TrueAirspeed.charAt(i) === '1') {
+                        console.log(kt)
+                        kt += 1024 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode5.TrueAirspeed = parseFloat(kt.toFixed(3));
+            }
         }
         const decodeModeBDS6 =(chainBits: string) => {
+            var HDGstatus = chainBits.substring(0,1);
+            this.BDSRegisterData.bdsCode6.HDGstatus = parseInt(HDGstatus, 2);
 
+            if (HDGstatus == '1') {
+                var sign = chainBits.substring(1,2);
+                var HDG = chainBits.substring(2,12);
+                var angle = (sign === '1' ? 180 : 0);
+
+                for (var i = 0; i < HDG.length; i++) {
+                    if (HDG.charAt(i) === '1') {
+                        angle += (sign === '1' ? -1 : 1) * 90 / Math.pow(2, i);
+                    }
+                }
+                if (angle != 180 && angle != -180){
+                    this.BDSRegisterData.bdsCode6.HDG = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                }
+            }
+
+            var IASstatus = chainBits.substring(12,13);
+            this.BDSRegisterData.bdsCode6.IASstatus = parseInt(IASstatus, 2);
+
+            if (IASstatus == '1') {
+                var IAS = chainBits.substring(13,23);
+                var kt = 0;
+
+                for (var i = 0; i < IAS.length; i++) {
+                    if (IAS.charAt(i) === '1') {
+                        console.log(kt)
+                        kt += 512 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode6.IAS = parseFloat(kt.toFixed(3));
+            }
+
+            var MACHstatus = chainBits.substring(23,24);
+            this.BDSRegisterData.bdsCode6.MACHstatus = parseInt(MACHstatus, 2);
+
+            if (MACHstatus == '1') {
+                var MACH = chainBits.substring(24,34);
+                var mach = 0;
+
+                for (var i = 0; i < MACH.length; i++) {
+                    if (MACH.charAt(i) === '1') {
+                        console.log(mach)
+                        mach += 2048 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode6.MACH = parseFloat(mach.toFixed(3))/1000;
+            }
+
+            var BARstatus = chainBits.substring(34,35);
+            this.BDSRegisterData.bdsCode6.BARstatus = parseInt(BARstatus, 2);
+
+            if (BARstatus == '1') {
+                var sign = chainBits.substring(35,36);
+                var BAR = chainBits.substring(36,45);
+                var ft = (sign === '1' ? 16384 : 0);
+
+                for (var i = 0; i < BAR.length; i++) {
+                    if (BAR.charAt(i) === '1') {
+                        ft += (sign === '1' ? -1 : 1) * 8192 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode6.BAR = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
+            }
+
+            var IVVstatus = chainBits.substring(45,46);
+            this.BDSRegisterData.bdsCode6.IVVstatus = parseInt(IVVstatus, 2);
+
+            if (IVVstatus == '1') {
+                var sign = chainBits.substring(46,47);
+                var IVV = chainBits.substring(47,56);
+                var ft = (sign === '1' ? 16384 : 0);
+
+                for (var i = 0; i < IVV.length; i++) {
+                    if (IVV.charAt(i) === '1') {
+                        ft += (sign === '1' ? -1 : 1) * 8192 / Math.pow(2, i);
+                    }
+                }
+                this.BDSRegisterData.bdsCode6.IVV = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
+            }
         }
         if(decimalBDS1===4){
             decodeModeBDS4(chainBitsData); 
