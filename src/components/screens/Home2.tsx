@@ -96,6 +96,7 @@ const Home2 = () => {
                   <th>BARSTATUS</th>
                   <th>BAR</th>
                   <th>IVVSTATUS</th>
+                  <th>IVV</th>
                   <th>Track number</th>
                   <th>X Component</th>
                   <th>Y Component</th>
