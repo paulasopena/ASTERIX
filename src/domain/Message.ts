@@ -27,8 +27,8 @@ export interface Message {
 }
 
 interface DataSourceIdentifier {
-    SAC: string;
-    SIC: string;
+    SAC: number;
+    SIC: number; 
 }
 
 interface TargetReportDescriptor {
@@ -129,8 +129,8 @@ interface BDSCode4{
     VNAV: number; //49
     ALTHold: number; //50
     approach: number; //51
-    targetAltStatus: number; //54
-    targetAltSource: number; //55-56
+    targetAltStatus: string; //54
+    targetAltSource: string; //55-56
 }
 interface BDSCode5{
     RASstatus: number; 
