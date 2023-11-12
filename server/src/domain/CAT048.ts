@@ -54,8 +54,8 @@ export class CAT048 {
                             VNAV: 0, 
                             ALTHold: 0, 
                             approach: 0, 
-                            targetAltStatus: 0, 
-                            targetAltSource: 0
+                            targetAltStatus: '', 
+                            targetAltSource: ''
                         };
         this.modeBDS5 = {   RASstatus: 0, 
                             RollAngle: 0,
@@ -328,18 +328,15 @@ export class CAT048 {
                         counter=counter+1;
                         let byteBDS=counter; 
                         for(let i=0; i<numberBDS; i+=1){
-                            var parameterBDSData = this.messages.subarray(numFSPEC+counter, numFSPEC+counter+8);
-                            const binaryArray = currentByte.toString(2).padStart(8, '0').split('').reverse();       // [7,6,5,4,3,2,1,0]
-
-                            const bitsBDSData = parameterBDSData[0].toString(2).padStart(8, '0').split('').reverse();
+                            var parameterBDSData = this.messages.subarray(numFSPEC+byteBDS, numFSPEC+byteBDS+8);
+                            const bitsBDSData = parameterBDSData[0].toString(2).padStart(8, '0');
                             const bitsBDSData2 = parameterBDSData[1].toString(2).padStart(8, '0');
                             const bitsBDSData3 = parameterBDSData[2].toString(2).padStart(8, '0');
                             const bitsBDSData4 = parameterBDSData[3].toString(2).padStart(8, '0');
                             const bitsBDSData5 = parameterBDSData[4].toString(2).padStart(8, '0');
                             const bitsBDSData6 = parameterBDSData[5].toString(2).padStart(8, '0');
                             const bitsBDSData7 = parameterBDSData[6].toString(2).padStart(8, '0');
-                            const bitsBDSData8 = parameterBDSData[7].toString(2).padStart(8, '0');
-                            const chainBitsDataBDS=bitsBDSData+bitsBDSData2+bitsBDSData3+bitsBDSData4+bitsBDSData5+bitsBDSData6+bitsBDSData6+bitsBDSData7;
+                            const chainBitsDataBDS=bitsBDSData+bitsBDSData2+bitsBDSData3+bitsBDSData4+bitsBDSData5+bitsBDSData6+bitsBDSData6;
                             var parameterBDSRegister=this.messages.subarray(numFSPEC+byteBDS+7, numFSPEC+byteBDS+8);
                             this.setModeBDS(parameterBDSRegister,chainBitsDataBDS);
                             byteBDS=byteBDS+8;
@@ -994,12 +991,63 @@ export class CAT048 {
         
         this.BDSRegisterData.modeS=this.BDSRegisterData.modeS+"BDS: "+decimalBDS1+","+decimalBDS2;
         const decodeModeBDS4 = (chainBits: string) =>{
+            console.log(chainBits);
             const MCPStatus = chainBits.substring(0,1);
-            console.log("MCP status: "+MCPStatus);
             this.BDSRegisterData.bdsCode4.MCPstatus=parseInt(MCPStatus,2);
-            const MCPaltitudeBits=chainBits.substring(1,12);
-            const MCPaltitude=parseInt(MCPaltitudeBits, 2);
-            console.log("MCP altitude: "+MCPaltitude);
+            if(this.BDSRegisterData.bdsCode4.MCPstatus===1){
+                const MCPaltitudeBits=chainBits.substring(1,13).split('').reverse().join().replace(/,/g, '');
+                console.log(MCPaltitudeBits);
+                const MCPaltitude=parseInt(MCPaltitudeBits,2);
+                this.BDSRegisterData.bdsCode4.MCPaltitude=MCPaltitude*16;
+            }
+            const FMSstatus=chainBits.substring(13,14);
+            this.BDSRegisterData.bdsCode4.FMSstatus=parseInt(FMSstatus,2);
+            if(this.BDSRegisterData.bdsCode4.FMSstatus===1){
+                const FMSaltitudeBits=chainBits.substring(14,26).split('').reverse().join().replace(/,/g, '');
+                const FMSaltitude=parseInt(FMSaltitudeBits,2);
+                this.BDSRegisterData.bdsCode4.FMSaltitude=FMSaltitude*16;
+            }
+            const BPSstatus=chainBits.substring(26,27);
+            this.BDSRegisterData.bdsCode4.BPSstatus=parseInt(BPSstatus,2);
+            if(this.BDSRegisterData.bdsCode4.BPSstatus===1){
+                const BPpressureBits=chainBits.substring(27,38).split('').reverse().join().replace(/,/g, '');
+                const BPSpressure=parseInt(BPpressureBits,2);
+                this.BDSRegisterData.bdsCode4.BPSpressure=BPSpressure*0.1+800;
+            }
+            const modeStatus=chainBits.substring(47,48);
+            this.BDSRegisterData.bdsCode4.modeStatus=parseInt(modeStatus,2);
+            const VNAVBits=chainBits.substring(48,49);
+            this.BDSRegisterData.bdsCode4.VNAV=parseInt(VNAVBits,2);
+            const ALTHold=chainBits.substring(49,50);
+            this.BDSRegisterData.bdsCode4.ALTHold=parseInt(ALTHold,2);
+            const approach=chainBits.substring(50,51);
+            this.BDSRegisterData.bdsCode4.approach=parseInt(approach,2);
+            const targetAltStatus=chainBits.substring(53,54);
+            if(parseInt(targetAltStatus,2)===1){
+                this.BDSRegisterData.bdsCode4.targetAltStatus="Source information deliberately provided";
+            }
+            else{
+                this.BDSRegisterData.bdsCode4.targetAltStatus="No source information provided.";
+            }
+            const targetAltSource=chainBits.substring(53,55);
+            if(targetAltSource==="00"){
+                this.BDSRegisterData.bdsCode4.targetAltSource="Unknown";
+               
+            }
+            else if(targetAltSource==="01"){
+                this.BDSRegisterData.bdsCode4.targetAltSource="FCU/MCP selected altitude";
+            }
+            else if(targetAltSource==="10"){
+                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude";
+            }
+            else{
+                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude"
+            }
+
+
+
+           
+          
             
         }
         const decodeModeBDS5 = (chainBits: string) => {
@@ -1148,8 +1196,8 @@ interface BDSCode4{
     VNAV: number; //49
     ALTHold: number; //50
     approach: number; //51
-    targetAltStatus: number; //54
-    targetAltSource: number; //55-56
+    targetAltStatus: string; //54
+    targetAltSource:  string; //55-56
 }
 interface BDSCode5{
     RASstatus: number; 

@@ -73,6 +73,7 @@ const Home2 = () => {
                   <th>BP</th>
                   <th>Mode Status</th>
                   <th>VNAV</th>
+                  <th>ALT HOLD</th>
                   <th>APP</th>
                   <th>TARGETALT STATUS</th>
                   <th>TARGETALT SOURCE</th>
