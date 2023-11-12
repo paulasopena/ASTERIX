@@ -27,8 +27,8 @@ export interface Message {
 }
 
 interface DataSourceIdentifier {
-    SAC: string;
-    SIC: string;
+    SAC: number;
+    SIC: number; 
 }
 
 interface TargetReportDescriptor {

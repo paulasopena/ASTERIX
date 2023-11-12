@@ -28,7 +28,7 @@ export class CAT048 {
 
     constructor(messages: Buffer) {
         this.messages = messages;
-        this.dataSourceIdentifier = { SAC: '', SIC: '' };
+        this.dataSourceIdentifier = { SAC: 0, SIC: 0 };
         this.targetReportDescriptor = { TYP: '', SIM: '', RDP: '', SPI: '', RAB: '' };
         this.measuredPositionPolarCoordinates = { rho: 0, theta: 0 };
         this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 };
@@ -324,7 +324,6 @@ export class CAT048 {
                         var parameterRepetition = this.messages.subarray(numFSPEC + counter, numFSPEC + counter + 1);
                         const bitsRepetition = parameterRepetition[0].toString(2).padStart(8, '0');
                         const numberBDS=parseInt(bitsRepetition, 2);
-                        console.log("Number BDSs of message:" +numberBDS);
                         counter=counter+1;
                         let byteBDS=counter; 
                         for(let i=0; i<numberBDS; i+=1){
@@ -336,7 +335,7 @@ export class CAT048 {
                             const bitsBDSData5 = parameterBDSData[4].toString(2).padStart(8, '0');
                             const bitsBDSData6 = parameterBDSData[5].toString(2).padStart(8, '0');
                             const bitsBDSData7 = parameterBDSData[6].toString(2).padStart(8, '0');
-                            const chainBitsDataBDS=bitsBDSData+bitsBDSData2+bitsBDSData3+bitsBDSData4+bitsBDSData5+bitsBDSData6+bitsBDSData6;
+                            const chainBitsDataBDS=bitsBDSData+bitsBDSData2+bitsBDSData3+bitsBDSData4+bitsBDSData5+bitsBDSData6+bitsBDSData7;
                             var parameterBDSRegister=this.messages.subarray(numFSPEC+byteBDS+7, numFSPEC+byteBDS+8);
                             this.setModeBDS(parameterBDSRegister,chainBitsDataBDS);
                             byteBDS=byteBDS+8;
@@ -496,8 +495,8 @@ export class CAT048 {
         var SAC = buffer[0];
         var SIC = buffer[1];
 
-        this.dataSourceIdentifier.SAC = SAC.toString(2).padStart(8, '0');
-        this.dataSourceIdentifier.SIC = SIC.toString(2).padStart(8, '0');
+        this.dataSourceIdentifier.SAC = parseInt(SAC.toString(2).padStart(8, '0'), 2);
+        this.dataSourceIdentifier.SIC = parseInt(SIC.toString(2).padStart(8, '0'),2);
 
     }
 
@@ -576,10 +575,10 @@ export class CAT048 {
 
     async setMeasuredPositionPolarCoordinates(buffer: Buffer) {
         var RHO = parseInt(buffer[0].toString(2).padStart(8, '0') + buffer[1].toString(2).padStart(8, '0'), 2);
-        this.measuredPositionPolarCoordinates.rho = RHO/256;
+        this.measuredPositionPolarCoordinates.rho = Number((RHO/256).toFixed(4));
 
         var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
-        this.measuredPositionPolarCoordinates.theta = THETA * (360 / Math.pow(2, 16));
+        this.measuredPositionPolarCoordinates.theta = Number(THETA * (360 / Math.pow(2, 16)));
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
@@ -614,19 +613,12 @@ export class CAT048 {
             }
             else{
                 return(parseInt(finalNumberChain, 2));
-            }
-            
+            }      
         }
         this.calculatedPositionCartesianCoordinates.x=twoComplementOfChainBits(XcomponentBits);
         this.calculatedPositionCartesianCoordinates.y=twoComplementOfChainBits(YcomponentBits);
         
 
-    }
-    async twoComplementOfChainBits(chainBits: string){
-        
-        
-        
-        
     }
 
     async setMode3ACodeOctalRepresentation(buffer: Buffer) {
@@ -690,26 +682,26 @@ export class CAT048 {
     async setRadarPlotCharacteristics(buffer: string, subfield: number) {
         if (subfield === 0) {
             var SRL = buffer;     
-            this.radarPlotCharacteristics.SRL = parseInt(SRL, 2)*(360 / Math.pow(2, 13)) + ' dg';
+            this.radarPlotCharacteristics.SRL = (parseInt(SRL, 2)*(360 / Math.pow(2, 13))).toFixed(5) + ' dg';
 
         } else if (subfield === 1) {
             var SRR = buffer;    
             this.radarPlotCharacteristics.SRR = parseInt(SRR, 2) + '';
         } else if (subfield === 2) {
             var SAM = buffer;    
-            this.radarPlotCharacteristics.SAM = SAM + '';
+            this.radarPlotCharacteristics.SAM = parseInt(SAM,2) + '';
         } else if (subfield === 3) {
             var PRL = buffer;   
-            this.radarPlotCharacteristics.PRL = parseInt(PRL, 2)*(360 / Math.pow(2, 13)) + ' dg';
+            this.radarPlotCharacteristics.PRL = (parseInt(PRL, 2)*(360 / Math.pow(2, 13))).toFixed(3) + ' dg';
         } else if (subfield === 4) {
             var PAM = buffer;    
             this.radarPlotCharacteristics.PAM = parseInt(PAM, 2) + ' dBm';
         } else if (subfield === 5) {
             var RPD = buffer;    
-            this.radarPlotCharacteristics.RPD = parseInt(RPD, 2)/256 + ' nmi';
+            this.radarPlotCharacteristics.RPD = (parseInt(RPD, 2)/256).toFixed(4) + ' nmi';
         } else if (subfield === 6) {
             var APD = buffer;    
-            this.radarPlotCharacteristics.APD = parseInt(APD, 2)*(360 / Math.pow(2, 14)) + ' dg';
+            this.radarPlotCharacteristics.APD = (parseInt(APD, 2)*(360 / Math.pow(2, 14))).toFixed(4) + ' dg';
         }
     }
     
@@ -720,10 +712,18 @@ export class CAT048 {
         var binaryBuffer3 = buffer[2].toString(2).padStart(8, '0');
 
         var timeDay = binaryBuffer1 + binaryBuffer2 + binaryBuffer3;
-
         const decimalTimeDay = parseInt(timeDay, 2);
-    
-        this.timeOfDay = decimalTimeDay/128 + ' s';
+        this.timeOfDay=secondsToMs(decimalTimeDay/128);
+
+
+        function secondsToMs(seconds: number): string {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            const miliseconds = Math.ceil((seconds % 1) * 1000);
+            const formatoHora = (valor: number) => (valor < 10 ? `0${valor}` : `${valor}`);
+            return `${formatoHora(hours)}:${formatoHora(minutes)}:${formatoHora(remainingSeconds)}:${miliseconds}`;
+          }
     }
     
 
@@ -778,12 +778,9 @@ export class CAT048 {
 
     async setCalculatedTrackVelocityPolarCoordinates(buffer: Buffer) {
         var RHO = parseInt(buffer[0].toString(2).padStart(8, '0') + buffer[1].toString(2).padStart(8, '0'), 2);
-        this.calculatedTrackVelocityPolarCoordinates.rho = RHO*0.22;
-        console.log("Calculated groundspeed: ", this.calculatedTrackVelocityPolarCoordinates.rho);
-
+        this.calculatedTrackVelocityPolarCoordinates.rho = Number((RHO*0.22).toFixed(4));
         var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
-        this.calculatedTrackVelocityPolarCoordinates.theta  = THETA * (360 / Math.pow(2, 16));
-        console.log("Calculated groundspeed: ", this.calculatedTrackVelocityPolarCoordinates.theta);
+        this.calculatedTrackVelocityPolarCoordinates.theta  = Number((THETA * (360 / Math.pow(2, 16))).toFixed(4));
     }
 
     async setAircraftAddress(buffer: Buffer) {
@@ -970,12 +967,7 @@ export class CAT048 {
             const sixBitsDecoded=binToIDTable[sixBitsReversed];
             this.aircraftIdentification=this.aircraftIdentification+sixBitsDecoded;
           }
-          console.log(this.aircraftIdentification);
-    }
-
-    async setBDSRegisterData(buffer: Buffer) {
-        const chainBitsBDS=buffer[0].toString(2).padStart(8, '0');
-        //console.log(chainBitsBDSID);
+          
     }
     
     async setModeBDS(bufferRegister:Buffer, chainBitsData: string){
@@ -991,28 +983,26 @@ export class CAT048 {
         
         this.BDSRegisterData.modeS=this.BDSRegisterData.modeS+"BDS: "+decimalBDS1+","+decimalBDS2;
         const decodeModeBDS4 = (chainBits: string) =>{
-            console.log(chainBits);
             const MCPStatus = chainBits.substring(0,1);
             this.BDSRegisterData.bdsCode4.MCPstatus=parseInt(MCPStatus,2);
             if(this.BDSRegisterData.bdsCode4.MCPstatus===1){
-                const MCPaltitudeBits=chainBits.substring(1,13).split('').reverse().join().replace(/,/g, '');
-                console.log(MCPaltitudeBits);
+                const MCPaltitudeBits=chainBits.substring(1,13);
                 const MCPaltitude=parseInt(MCPaltitudeBits,2);
                 this.BDSRegisterData.bdsCode4.MCPaltitude=MCPaltitude*16;
             }
             const FMSstatus=chainBits.substring(13,14);
             this.BDSRegisterData.bdsCode4.FMSstatus=parseInt(FMSstatus,2);
             if(this.BDSRegisterData.bdsCode4.FMSstatus===1){
-                const FMSaltitudeBits=chainBits.substring(14,26).split('').reverse().join().replace(/,/g, '');
+                const FMSaltitudeBits=chainBits.substring(14,26);
                 const FMSaltitude=parseInt(FMSaltitudeBits,2);
                 this.BDSRegisterData.bdsCode4.FMSaltitude=FMSaltitude*16;
             }
             const BPSstatus=chainBits.substring(26,27);
             this.BDSRegisterData.bdsCode4.BPSstatus=parseInt(BPSstatus,2);
             if(this.BDSRegisterData.bdsCode4.BPSstatus===1){
-                const BPpressureBits=chainBits.substring(27,38).split('').reverse().join().replace(/,/g, '');
+                const BPpressureBits=chainBits.substring(27,38); 
                 const BPSpressure=parseInt(BPpressureBits,2);
-                this.BDSRegisterData.bdsCode4.BPSpressure=BPSpressure*0.1+800;
+                this.BDSRegisterData.bdsCode4.BPSpressure=2*BPSpressure*0.1+800;
             }
             const modeStatus=chainBits.substring(47,48);
             this.BDSRegisterData.bdsCode4.modeStatus=parseInt(modeStatus,2);
@@ -1031,8 +1021,7 @@ export class CAT048 {
             }
             const targetAltSource=chainBits.substring(53,55);
             if(targetAltSource==="00"){
-                this.BDSRegisterData.bdsCode4.targetAltSource="Unknown";
-               
+                this.BDSRegisterData.bdsCode4.targetAltSource="Unknown";     
             }
             else if(targetAltSource==="01"){
                 this.BDSRegisterData.bdsCode4.targetAltSource="FCU/MCP selected altitude";
@@ -1051,7 +1040,6 @@ export class CAT048 {
             
         }
         const decodeModeBDS5 = (chainBits: string) => {
-            console.log(chainBits)
             var RASstatus = chainBits.substring(0,1);
             this.BDSRegisterData.bdsCode5.RASstatus = parseInt(RASstatus, 2);
 
@@ -1124,12 +1112,10 @@ export class CAT048 {
 
             if (TAstatus == '1') {
                 var TrueAirspeed = chainBits.substring(46,56);
-                console.log("HHEEEYY :" + TrueAirspeed)
                 var kt = 0;
 
                 for (var i = 0; i < TrueAirspeed.length; i++) {
                     if (TrueAirspeed.charAt(i) === '1') {
-                        console.log(kt)
                         kt += 1024 / Math.pow(2, i);
                     }
                 }
@@ -1164,7 +1150,6 @@ export class CAT048 {
 
                 for (var i = 0; i < IAS.length; i++) {
                     if (IAS.charAt(i) === '1') {
-                        console.log(kt)
                         kt += 512 / Math.pow(2, i);
                     }
                 }
@@ -1257,8 +1242,8 @@ export class CAT048 {
 }
 
 interface DataSourceIdentifier {
-    SAC: string;
-    SIC: string;
+    SAC: number;
+    SIC: number;
 }
 
 interface TargetReportDescriptor {
