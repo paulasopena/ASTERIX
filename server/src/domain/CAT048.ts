@@ -1041,7 +1041,7 @@ export class CAT048 {
                 this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude";
             }
             else{
-                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude"
+                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude";
             }
 
 
