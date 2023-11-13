@@ -1,4 +1,5 @@
 import assert from "assert";
+import { GeoUtils } from "./GeoUtils";
 
 export class CAT048 {
     messages: Buffer;
@@ -8,6 +9,7 @@ export class CAT048 {
     targetReportDescriptor!: TargetReportDescriptor;                                        //020
     measuredPositionPolarCoordinates!: PolarCoordinates;                                    //040
     calculatedPositionCartesianCoordinates!: CartesianCoordinates;                          //042
+    calculatedPositionLLACoordinates!: LLACoordinates;
     mode3ACodeOctalRepresentation!: Mode3ACodeOctalRepresentation;                          //070
     flightLevelBinaryRepresentation!: FlightLevelBinaryRepresentation;                      //090
     heightMeasuredBy3DRadar!: HeightMeasuredBy3DRadar;                                      //110
@@ -32,6 +34,7 @@ export class CAT048 {
         this.targetReportDescriptor = { TYP: '', SIM: '', RDP: '', SPI: '', RAB: '' };
         this.measuredPositionPolarCoordinates = { rho: 0, theta: 0 };
         this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 };
+        this.calculatedPositionLLACoordinates = { lat: 0, lng: 0};
         this.mode3ACodeOctalRepresentation = { V: '', G: '', L: '', mode3A: '' };
         this.flightLevelBinaryRepresentation = { V: '', G: '', flightLevel: 0 };
         this.heightMeasuredBy3DRadar = { Height: 0 };
@@ -575,10 +578,19 @@ export class CAT048 {
 
     async setMeasuredPositionPolarCoordinates(buffer: Buffer) {
         var RHO = parseInt(buffer[0].toString(2).padStart(8, '0') + buffer[1].toString(2).padStart(8, '0'), 2);
-        this.measuredPositionPolarCoordinates.rho = Number((RHO/256).toFixed(4));
+        const rho = RHO/256;
+        this.measuredPositionPolarCoordinates.rho = rho;
 
         var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
-        this.measuredPositionPolarCoordinates.theta = Number(THETA * (360 / Math.pow(2, 16)));
+        const theta = THETA * (360 / Math.pow(2, 16));
+        this.measuredPositionPolarCoordinates.theta = theta;
+
+        const geoUtils = new GeoUtils();
+
+        const { lat, lon } = geoUtils.convertPolarToLLa(rho, theta);
+
+        this.calculatedPositionLLACoordinates.lat = lat;
+        this.calculatedPositionLLACoordinates.lng = lon;
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
@@ -615,9 +627,12 @@ export class CAT048 {
                 return(parseInt(finalNumberChain, 2));
             }      
         }
-        this.calculatedPositionCartesianCoordinates.x=twoComplementOfChainBits(XcomponentBits);
-        this.calculatedPositionCartesianCoordinates.y=twoComplementOfChainBits(YcomponentBits);
-        
+
+        const x = twoComplementOfChainBits(XcomponentBits);
+        const y = twoComplementOfChainBits(YcomponentBits);
+
+        this.calculatedPositionCartesianCoordinates.x = x;
+        this.calculatedPositionCartesianCoordinates.y = y;
 
     }
 
@@ -1275,6 +1290,11 @@ interface PolarCoordinates {
 interface CartesianCoordinates {
     x: number;
     y: number;
+}
+
+interface LLACoordinates {
+    lat: number;
+    lng: number;
 }
 
 interface Mode3ACodeOctalRepresentation {

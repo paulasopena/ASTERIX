@@ -129,8 +129,8 @@ const Home2 = () => {
                 <td>{message.message.dataSourceIdentifier.SAC}</td>
                 <td>{message.message.dataSourceIdentifier.SIC}</td>
                 <td>{message.message.timeOfDay}</td>
-                <td>LATITUDE MISSING</td>
-                <td>LONGITUDE MISSING</td>
+                <td>{message.message.calculatedPositionLLACoordinates.lat}</td>
+                <td>{message.message.calculatedPositionLLACoordinates.lng}</td>
                 <td>{message.message.targetReportDescriptor.TYP}</td>
                 <td>{message.message.targetReportDescriptor.SIM}</td>
                 <td></td>

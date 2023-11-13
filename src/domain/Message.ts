@@ -8,6 +8,7 @@ export interface Message {
         targetReportDescriptor: TargetReportDescriptor;                                        //020
         measuredPositionPolarCoordinates: PolarCoordinates;                                    //040
         calculatedPositionCartesianCoordinates: CartesianCoordinates;                          //042
+        calculatedPositionLLACoordinates: LLACoordinates;
         mode3ACodeOctalRepresentation: Mode3ACodeOctalRepresentation;                          //070
         flightLevelBinaryRepresentation: FlightLevelBinaryRepresentation;                      //090
         heightMeasuredBy3DRadar: HeightMeasuredBy3DRadar;                                      //110
@@ -60,6 +61,11 @@ interface PolarCoordinates {
 interface CartesianCoordinates {
     x: number;
     y: number;
+}
+
+interface LLACoordinates {
+    lat: number;
+    lng: number;
 }
 
 interface Mode3ACodeOctalRepresentation {
