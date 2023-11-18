@@ -11,6 +11,7 @@ export interface Message {
         calculatedPositionLLACoordinates: LLACoordinates;
         mode3ACodeOctalRepresentation: Mode3ACodeOctalRepresentation;                          //070
         flightLevelBinaryRepresentation: FlightLevelBinaryRepresentation;                      //090
+        modeCcorrected: number
         heightMeasuredBy3DRadar: HeightMeasuredBy3DRadar;                                      //110
         radarPlotCharacteristics: RadarPlotCharacteristics;                                    //130
         timeOfDay: string;   //(s)                                                             //140
