@@ -1,7 +1,8 @@
 import { loadModules } from 'esri-loader';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpenOutline, FileTrayOutline, DownloadOutline } from 'react-ionicons';
+import { FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
+import './HomeStyle.css';
 
 const MapComponent: React.FC = () => {
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -9,6 +10,9 @@ const MapComponent: React.FC = () => {
   const navigation = useNavigate();
   const openFile=()=>{
     navigation('/picker'); 
+  }
+  const seeTableDecoder =()=>{
+    navigation('/home2');
   }
   useEffect(() => {
     loadModules(['esri/Map', 'esri/views/MapView']).then(([Map, MapView]) => {
@@ -31,31 +35,37 @@ const MapComponent: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh'}}>
       <div ref={mapDivRef} style={{ flex: 1 }}></div>
-      <div style={{ width: '75px', padding: '16px', backgroundColor: '#00000', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+      <div style={{ width: '75px', padding: '16px', backgroundColor: '#000000', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
         <button onClick={openFile}>
           <FolderOpenOutline
-              color={'#00000'} 
+              color={'#ffffff'} 
               title={'Open file'}
               height="50px"
               width="50px"
             /></button>
         <button onClick={() => console.log('Botón 2')}>
           <FileTrayOutline
-              color={'#00000'} 
-              title={'Open file'}
+              color={'#ffffff'} 
+              title={'Export to CSV'}
               height="50px"
               width="50px"
             /></button>
         <button onClick={() => console.log('Botón 2')}>
           <DownloadOutline
-              color={'#00000'} 
-              title={'Download to kml'}
+              color={'#ffffff'} 
+              title={'Export to KML'}
               height="50px"
               width="50px"
-            /></button>
-        
+            /></button> 
+        <button onClick={seeTableDecoder}>
+          <TabletLandscapeOutline
+              color={'#ffffff'} 
+              title={'Open the table'}
+              height="50px"
+              width="50px"
+            /></button>        
       </div>
     </div>
   );

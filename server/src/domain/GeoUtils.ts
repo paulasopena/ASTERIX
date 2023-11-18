@@ -5,7 +5,7 @@ class CoordinatesWGS84{
   constructor(public lat: number, public lon: number, public h: number) {}
 }
 
-export class GeoUtils {
+export class GeoUtils2 {
   private A: number; // Semi-major earth axis
   private E2: number; // Square of the first eccentricity
 
