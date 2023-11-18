@@ -14,3 +14,7 @@ td {
     background-color: #ffffe5;
     padding: 8px;
 }
+button{
+    background-color: black;
+    border-radius: 10%;
+}
