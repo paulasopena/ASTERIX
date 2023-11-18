@@ -5,7 +5,7 @@ import './App.css';
 import Home from './components/screens/Home';
 import Home2 from './components/screens/Home2';
 import Picker from './components/screens/PickerScreen';
-import MapComponent from './components/Map';
+import MapComponent from './components/screens/Map';
 
 function App() {
   return (

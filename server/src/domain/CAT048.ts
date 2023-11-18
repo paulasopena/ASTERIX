@@ -1,5 +1,5 @@
 import assert from "assert";
-import { GeoUtils } from "./GeoUtils";
+import { GeoUtils } from "./GeoUtils2";
 
 export class CAT048 {
     messages: Buffer;
@@ -587,7 +587,7 @@ export class CAT048 {
 
         const geoUtils = new GeoUtils();
 
-        const { lat, lon } = geoUtils.convertPolarToLLa(rho, theta);
+        const { lat, lon } = geoUtils.convertPolarToLLa(rho, theta) || { lat: 0, lon: 0 };
 
         this.calculatedPositionLLACoordinates.lat = lat;
         this.calculatedPositionLLACoordinates.lng = lon;

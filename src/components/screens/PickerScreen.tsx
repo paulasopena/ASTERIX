@@ -25,7 +25,7 @@ const Picker = () => {
 
                 if (response.ok) {
                     console.log('Archivo subido con éxito');
-                    navigation('/home2');
+                    navigation('/map');
                 } else {
                     console.error('Error al subir el archivo');
                 }
