@@ -150,7 +150,7 @@ const Home2 = () => {
                 <td>{message.message.flightLevelBinaryRepresentation.V}</td>
                 <td>{message.message.flightLevelBinaryRepresentation.G}</td>
                 <td>{message.message.flightLevelBinaryRepresentation.flightLevel}</td>
-                <td>MODE C CORRECTED MISSING?</td>
+                <td>{message.message.modeCcorrected}</td>
                 <td>{message.message.radarPlotCharacteristics.SRL}</td>
                 <td>{message.message.radarPlotCharacteristics.SRR}</td>
                 <td>{message.message.radarPlotCharacteristics.SAM}</td>

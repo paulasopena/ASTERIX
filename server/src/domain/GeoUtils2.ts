@@ -11,4 +11,5 @@ export class GeoUtils {
 
     return { lat, lon };
   }
+  
 }

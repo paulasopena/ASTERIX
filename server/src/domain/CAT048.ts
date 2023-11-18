@@ -1,4 +1,5 @@
 import assert from "assert";
+import { RadarConverter, RadarCoordinates, GeodeticCoordinates } from "./GeoUtils3";
 import { GeoUtils } from "./GeoUtils2";
 
 export class CAT048 {
@@ -12,6 +13,7 @@ export class CAT048 {
     calculatedPositionLLACoordinates!: LLACoordinates;
     mode3ACodeOctalRepresentation!: Mode3ACodeOctalRepresentation;                          //070
     flightLevelBinaryRepresentation!: FlightLevelBinaryRepresentation;                      //090
+    modeCcorrected: number
     heightMeasuredBy3DRadar!: HeightMeasuredBy3DRadar;                                      //110
     radarPlotCharacteristics!: RadarPlotCharacteristics;                                    //130
     timeOfDay!: string;   //(s)                                                             //140
@@ -37,6 +39,7 @@ export class CAT048 {
         this.calculatedPositionLLACoordinates = { lat: 0, lng: 0};
         this.mode3ACodeOctalRepresentation = { V: '', G: '', L: '', mode3A: '' };
         this.flightLevelBinaryRepresentation = { V: '', G: '', flightLevel: 0 };
+        this.modeCcorrected=0;
         this.heightMeasuredBy3DRadar = { Height: 0 };
         this.radarPlotCharacteristics = { SRL: '', SRR: '', SAM: '', PRL: '', PAM: '', RPD: '', APD: '' };
         this.timeOfDay = '';
@@ -488,7 +491,7 @@ export class CAT048 {
                     }
                     break;
             }
-
+            this.setModeCCorrected();
             j += 1;
             
         }
@@ -585,9 +588,19 @@ export class CAT048 {
         const theta = THETA * (360 / Math.pow(2, 16));
         this.measuredPositionPolarCoordinates.theta = theta;
 
-        const geoUtils = new GeoUtils();
-
+        
+        const geoUtils= new GeoUtils();
         const { lat, lon } = geoUtils.convertPolarToLLa(rho, theta) || { lat: 0, lon: 0 };
+        /*
+        const radarCoordinates = new RadarCoordinates(rho*Math.PI/180, theta*Math.PI/180, 20);
+        const radarLocationBCN = new GeodeticCoordinates(
+            41 + 18 / 60 + 2.5284 / 3600,  
+            -(2 + 6 / 60 + 7.4095 / 3600), 
+            2007 + 25.25 
+        );
+        const geodeticCoords = RadarConverter.convertToGeodetic(radarCoordinates, radarLocationBCN);
+        */
+
 
         this.calculatedPositionLLACoordinates.lat = lat;
         this.calculatedPositionLLACoordinates.lng = lon;
@@ -983,6 +996,11 @@ export class CAT048 {
             this.aircraftIdentification=this.aircraftIdentification+sixBitsDecoded;
           }
           
+    }
+    async setModeCCorrected(){
+        if(this.flightLevelBinaryRepresentation.flightLevel<=6){
+            this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel+(this.BDSRegisterData.bdsCode4.BPSpressure-1013.25)*30;
+        }
     }
     
     async setModeBDS(bufferRegister:Buffer, chainBitsData: string){
