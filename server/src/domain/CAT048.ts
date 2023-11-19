@@ -1,6 +1,5 @@
 import assert from "assert";
-import { RadarConverter, RadarCoordinates, GeodeticCoordinates } from "./GeoUtils3";
-import { GeoUtils } from "./GeoUtils2";
+import { CoordinatesPolar, CoordinatesWGS84, CoordinatesXYZ, GeoUtils1 } from "./GeoUtils1";
 
 export class CAT048 {
     messages: Buffer;
@@ -492,6 +491,7 @@ export class CAT048 {
                     break;
             }
             this.setModeCCorrected();
+            this.setLatitudeLongitude();
             j += 1;
             
         }
@@ -587,23 +587,24 @@ export class CAT048 {
         var THETA = parseInt(buffer[2].toString(2).padStart(8, '0') + buffer[3].toString(2).padStart(8, '0'), 2);
         const theta = THETA * (360 / Math.pow(2, 16));
         this.measuredPositionPolarCoordinates.theta = theta;
+    }
 
-        
-        const geoUtils= new GeoUtils();
-        const { lat, lon } = geoUtils.convertPolarToLLa(rho, theta) || { lat: 0, lon: 0 };
-        /*
-        const radarCoordinates = new RadarCoordinates(rho*Math.PI/180, theta*Math.PI/180, 20);
-        const radarLocationBCN = new GeodeticCoordinates(
-            41 + 18 / 60 + 2.5284 / 3600,  
-            -(2 + 6 / 60 + 7.4095 / 3600), 
-            2007 + 25.25 
-        );
-        const geodeticCoords = RadarConverter.convertToGeodetic(radarCoordinates, radarLocationBCN);
-        */
-
-
-        this.calculatedPositionLLACoordinates.lat = lat;
-        this.calculatedPositionLLACoordinates.lng = lon;
+    async setLatitudeLongitude () {
+        const geoUtils = new GeoUtils1();
+        const el = geoUtils.calculateElevation(this.measuredPositionPolarCoordinates.rho, this.flightLevelBinaryRepresentation.flightLevel);
+        console.log('rho: ' + this.measuredPositionPolarCoordinates.rho);
+        console.log('theta: ' + this.measuredPositionPolarCoordinates.theta);
+        console.log('FL: ' + this.flightLevelBinaryRepresentation.flightLevel);
+        console.log('Elevation: ' + el);
+        const rho = this.measuredPositionPolarCoordinates.rho * (Math.PI/180);
+        const theta = this.measuredPositionPolarCoordinates.theta * (Math.PI/180);
+        const polarCoordinates = new CoordinatesPolar(rho, el, theta);
+        const radarCartesians: CoordinatesXYZ = geoUtils.changeRadarSpherical2RadarCartesian(polarCoordinates)!;
+        const radarCoordinates = new CoordinatesWGS84(41 + 18 / 60 + 2.5284 / 3600, -(2 + 6 / 60 + 7.4095 / 3600), 2007 + 25.25 );
+        const geocentric = geoUtils.changeRadarCartesian2Geocentric(radarCoordinates, radarCartesians);
+        const geodesic = geoUtils.changeGeocentric2Geodesic(geocentric);
+        this.calculatedPositionLLACoordinates.lat = geodesic!.Lat;
+        this.calculatedPositionLLACoordinates.lng = geodesic!.Lon;
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
@@ -1198,7 +1199,6 @@ export class CAT048 {
 
                 for (var i = 0; i < MACH.length; i++) {
                     if (MACH.charAt(i) === '1') {
-                        console.log(mach)
                         mach += 2048 / Math.pow(2, i);
                     }
                 }
