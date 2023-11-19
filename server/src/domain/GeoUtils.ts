@@ -9,8 +9,7 @@ export class GeoUtils2 {
   private A: number; // Semi-major earth axis
   private E2: number; // Square of the first eccentricity
 
-  constructor() {
-    
+  constructor() {    
     this.A = 6378137.0;
     this.E2 = 0.00669437999014; 
   }
