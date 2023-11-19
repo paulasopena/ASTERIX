@@ -999,7 +999,7 @@ export class CAT048 {
     }
     async setModeCCorrected(){
         if(this.flightLevelBinaryRepresentation.flightLevel<=6){
-            this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel+(this.BDSRegisterData.bdsCode4.BPSpressure-1013.25)*30;
+            this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel*100+(this.BDSRegisterData.bdsCode4.BPSpressure-1013.25)*30;
         }
     }
     
