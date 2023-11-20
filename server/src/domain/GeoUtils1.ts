@@ -48,14 +48,14 @@ export class GeoUtils1 {
     }
 
     private degreesToRadians(degrees: number): number {
-        return (degrees * Math.PI) / 180;
+        return degrees * Math.PI / 180;
     }
 
     calculateElevation (rhoDegrees: number, FL: number) {
         var H: number;
         var El: number;
-        var Hri = 2.007 + 25.25;
-        var rho = this.degreesToRadians(rhoDegrees);
+        var Hri =this.A+25.25+2.007;
+        //var rho = this.degreesToRadians(rhoDegrees);
 
         if (FL >= 0) {
             H = FL * 100 * 0.3048;
@@ -65,10 +65,10 @@ export class GeoUtils1 {
 
         console.log('H: ' + H);
         console.log('Hri: ' + Hri);
-        console.log('Rho: ' + rho);
+        console.log('Rho: ' + rhoDegrees);
         console.log('A: ' + this.A)
 
-        const asinArg = (2 * this.A * (H - Hri) + Math.pow(H, 2) - Math.pow(Hri, 2) - Math.pow(rho, 2)) / (2 * rho * (this.A + Hri));
+        const asinArg = (2 * this.A * (H - Hri) + H^2 - Hri^2 - rhoDegrees^2) / (2 * rhoDegrees * (this.A + Hri));
 
         console.log('Asin argument: ' + asinArg);
 
