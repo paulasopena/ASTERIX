@@ -47,15 +47,11 @@ export class GeoUtils1 {
         this.E2 = 0.00669437999014;
     }
 
-    private degreesToRadians(degrees: number): number {
-        return (degrees * Math.PI) / 180;
-    }
-
-    calculateElevation (rhoDegrees: number, FL: number) {
+    calculateElevation (rhoNM: number, FL: number) {
         var H: number;
         var El: number;
         var Hri = 2.007 + 25.25;
-        var rho = this.degreesToRadians(rhoDegrees);
+        var rho = rhoNM * 1852;
 
         if (FL >= 0) {
             H = FL * 100 * 0.3048;
