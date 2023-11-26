@@ -6,6 +6,9 @@ import { Message } from '../../domain/Message';
 import { FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
 import './HomeStyle.css';
 import { Aircraft } from '../../domain/Aircraft';
+import {create} from 'xmlbuilder2';
+import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import { saveAs } from "file-saver";
 
 const MapComponent: React.FC = () => {
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -20,7 +23,7 @@ const MapComponent: React.FC = () => {
   const seeTableDecoder = () => {
     navigation('/home2');
   };
-
+  
   const [fileData, setFileData] = useState<Aircraft[]>([]);
   
   useEffect(() => {
@@ -86,6 +89,32 @@ const MapComponent: React.FC = () => {
     window.location.href = fileUrl;
   };
 
+  const generateKML = () => {
+    const root = create({
+      version: "1.0",
+      encoding: "UTF-8",
+    }).ele("kml", { xmlns: "http://www.opengis.net/kml/2.2" });
+
+    fileData.forEach((flight) => {
+      const placemark = root.ele("Placemark");
+      const nameNode: XMLBuilder = placemark.ele("name");
+      nameNode.txt(`Aircraft Identification: ${flight.aircraftIdentification}`);
+      const descriptionNode: XMLBuilder = placemark.ele("description");
+      descriptionNode.txt(`IAS: ${flight.IAS}, Flight Level: ${flight.flightLevel}`);
+    
+      flight.route.forEach((point) => {
+        const placePoint = placemark.ele("Point");
+        placePoint.ele("coordinates").txt(`${point.lng},${point.lat},${point.height}`);
+      });
+  
+
+    });
+    const kmlContent = root.end({ prettyPrint: true });
+
+    const blob = new Blob([kmlContent], { type: "application/xml;charset=utf-8" });
+    saveAs(blob, "flight_data.kml");
+  }
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <div ref={mapDivRef} style={{ flex: 1 }}></div>
@@ -96,7 +125,7 @@ const MapComponent: React.FC = () => {
         <button onClick={() => downloadFile()}>
           <FileTrayOutline color={'#ffffff'} title={'Export to CSV'} height="50px" width="50px" />
         </button>
-        <button onClick={() => console.log('Botón 2')}>
+        <button onClick={() => generateKML()}>
           <DownloadOutline color={'#ffffff'} title={'Export to KML'} height="50px" width="50px" />
         </button>
         <button onClick={seeTableDecoder}>
