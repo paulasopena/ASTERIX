@@ -14,6 +14,8 @@
     "arcgis-js-api": "^4.28.10",
     "esri-loader": "^3.7.0",
     "fs": "^0.0.1-security",
+    "papaparse": "^5.4.1",
+    "react-table": "^7.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -53,6 +55,8 @@
   },
   "devDependencies": {
     "electron": "^26.2.4",
+    "@types/papaparse": "^5.3.10",
+    "@types/react-table": "^7.7.17",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }

@@ -59,14 +59,14 @@ export class GeoUtils1 {
             H = 0;
         }
 
-        console.log('H: ' + H);
-        console.log('Hri: ' + Hri);
-        console.log('Rho: ' + rho);
-        console.log('A: ' + this.A)
+        //console.log('H: ' + H);
+        //console.log('Hri: ' + Hri);
+        //console.log('Rho: ' + rho);
+        //console.log('A: ' + this.A)
 
         const asinArg = (2 * this.A * (H - Hri) + Math.pow(H, 2) - Math.pow(Hri, 2) - Math.pow(rho, 2)) / (2 * rho * (this.A + Hri));
 
-        console.log('Asin argument: ' + asinArg);
+        //console.log('Asin argument: ' + asinArg);
 
         if (Math.abs(asinArg) <= 1) {
             El = Math.asin(asinArg);
@@ -75,7 +75,7 @@ export class GeoUtils1 {
             El = NaN; 
         }
 
-        console.log('El: ' + El);
+        //console.log('El: ' + El);
 
         return El;
     }

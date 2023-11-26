@@ -1,10 +1,11 @@
 import { loadModules } from 'esri-loader';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchBytes } from "../../asterix/file_manager";
+import { fetchBytes, getAircrafts } from "../../asterix/file_manager";
 import { Message } from '../../domain/Message';
 import { FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
 import './HomeStyle.css';
+import { Aircraft } from '../../domain/Aircraft';
 
 const MapComponent: React.FC = () => {
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -20,16 +21,16 @@ const MapComponent: React.FC = () => {
     navigation('/home2');
   };
 
-  const [fileData, setFileData] = useState<Message[]>([]);
+  const [fileData, setFileData] = useState<Aircraft[]>([]);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchBytes('230502-est-080001_BCN_60MN_08_09.ast');
-        if (data != undefined) {
-          const parsedData = JSON.parse(data);
-          setFileData(parsedData);
-        }        
+        const aircrafts =await getAircrafts('230502-est-080001_BCN_60MN_08_09.csv');
+        if (aircrafts != undefined) {
+          setFileData(JSON.parse(aircrafts));
+        }
+        
       } catch (error) {
         console.error('Error fetching file data:', error);
       }
@@ -55,8 +56,10 @@ const MapComponent: React.FC = () => {
         map.add(graphicsLayerRef.current);
 
         fileData.map((message, index)=>{
+          // const initialLocation = message.route[0];
           const markerGraphic = new Graphic({
-            geometry: { type: 'point', longitude: message.message.calculatedPositionLLACoordinates.lng, latitude: message.message.calculatedPositionLLACoordinates.lat },
+            // geometry: { type: 'point', longitude: initialLocation.lng, latitude: initialLocation.lat },
+            geometry: { type: 'point', longitude: 1.048, latitude: 41.18 },
             symbol: new SimpleMarkerSymbol({ color: 'red' }),
           });
           graphicsLayerRef.current.add(markerGraphic);
@@ -73,6 +76,14 @@ const MapComponent: React.FC = () => {
     );
   }, []);
 
+  const downloadFile = () => {
+    const filePath = '230502-est-080001_BCN_60MN_08_09.csv';
+  
+    const fileUrl = process.env.PUBLIC_URL + '/' + filePath;
+  
+    window.location.href = fileUrl;
+  };
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <div ref={mapDivRef} style={{ flex: 1 }}></div>
@@ -80,7 +91,7 @@ const MapComponent: React.FC = () => {
         <button onClick={openFile}>
           <FolderOpenOutline color={'#ffffff'} title={'Open file'} height="50px" width="50px" />
         </button>
-        <button onClick={() => console.log('Botón 2')}>
+        <button onClick={() => downloadFile()}>
           <FileTrayOutline color={'#ffffff'} title={'Export to CSV'} height="50px" width="50px" />
         </button>
         <button onClick={() => console.log('Botón 2')}>

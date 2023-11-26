@@ -24,9 +24,6 @@ export class CAT048 {
     //aircraftIdentification!: string[];   //(8 characters)                                   //240
     aircraftIdentification!: string; 
     BDSRegisterData!: BDSRegisterData;                                                      //250
-    modeBDS4!: BDSCode4;
-    modeBDS5!: BDSCode5;
-    modeBDS6!: BDSCode6; 
 
 
     constructor(messages: Buffer) {
@@ -49,45 +46,41 @@ export class CAT048 {
         this.communicationsACASCapabilityFlightStatus = { COM: '', STAT: '', SI: '', MSSC: '', ARC: '', AIC: '', B1A: '', B1B: '' };
         // this.aircraftIdentification = ['', '', '', '', '', '', '', ''];
         this.aircraftIdentification = '';
-        this.modeBDS4 = {   MCPstatus: 0, //1 
-                            MCPaltitude: 0,
-                            FMSstatus: 0, 
-                            FMSaltitude: 0, 
-                            BPSstatus: 0, 
-                            BPSpressure: 0, 
-                            modeStatus: 0, 
-                            VNAV: 0, 
-                            ALTHold: 0, 
-                            approach: 0, 
-                            targetAltStatus: '', 
-                            targetAltSource: ''
-                        };
-        this.modeBDS5 = {   RASstatus: 0, 
-                            RollAngle: 0,
-                            TTAstatus: 0, 
-                            TrueTrackAngle: 0,
-                            GSstatus: 0,
-                            GroundSpeed: 0,
-                            TARstatus: 0,
-                            TrackAngleRate: 0, 
-                            TAstatus: 0,
-                            TrueAirspeed: 0
-                        };
-        this.modeBDS6 = {   HDGstatus: 0, 
-                            HDG: 0,
-                            IASstatus: 0,
-                            IAS: 0,
-                            MACHstatus: 0,
-                            MACH: 0,
-                            BARstatus: 0, 
-                            BAR: 0, 
-                            IVVstatus: 0, 
-                            IVV: 0 
-                        };
-        this.BDSRegisterData = {modeS: '', 
-            bdsCode4: this.modeBDS4,
-            bdsCode5: this.modeBDS5,
-            bdsCode6: this.modeBDS6 };
+        this.BDSRegisterData = {
+            modeS: '', 
+            RASstatus: 0, 
+            RollAngle: 0,
+            TTAstatus: 0, 
+            TrueTrackAngle: 0,
+            GSstatus: 0,
+            GroundSpeed: 0,
+            TARstatus: 0,
+            TrackAngleRate: 0, 
+            TAstatus: 0,
+            TrueAirspeed: 0,
+            HDGstatus: 0, 
+            HDG: 0,
+            IASstatus: 0,
+            IAS: 0,
+            MACHstatus: 0,
+            MACH: 0,
+            BARstatus: 0, 
+            BAR: 0, 
+            IVVstatus: 0, 
+            IVV: 0 ,
+            MCPstatus: 0, //1 
+            MCPaltitude: 0,
+            FMSstatus: 0, 
+            FMSaltitude: 0, 
+            BPSstatus: 0, 
+            BPSpressure: 0, 
+            modeStatus: 0, 
+            VNAV: 0, 
+            ALTHold: 0, 
+            approach: 0, 
+            targetAltStatus: '', 
+            targetAltSource: '' 
+        };
         
     }
 
@@ -592,10 +585,10 @@ export class CAT048 {
     async setLatitudeLongitude () {
         const geoUtils = new GeoUtils1();
         const el = geoUtils.calculateElevation(this.measuredPositionPolarCoordinates.rho, this.flightLevelBinaryRepresentation.flightLevel);
-        console.log('rho: ' + this.measuredPositionPolarCoordinates.rho);
-        console.log('theta: ' + this.measuredPositionPolarCoordinates.theta);
-        console.log('FL: ' + this.flightLevelBinaryRepresentation.flightLevel);
-        console.log('Elevation: ' + el);
+        //console.log('rho: ' + this.measuredPositionPolarCoordinates.rho);
+        //console.log('theta: ' + this.measuredPositionPolarCoordinates.theta);
+        //console.log('FL: ' + this.flightLevelBinaryRepresentation.flightLevel);
+        //console.log('Elevation: ' + el);
         const rho = this.measuredPositionPolarCoordinates.rho * (Math.PI/180);
         const theta = this.measuredPositionPolarCoordinates.theta * (Math.PI/180);
         const polarCoordinates = new CoordinatesPolar(rho, el, theta);
@@ -1000,7 +993,7 @@ export class CAT048 {
     }
     async setModeCCorrected(){
         if(this.flightLevelBinaryRepresentation.flightLevel<=6){
-            this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel+(this.BDSRegisterData.bdsCode4.BPSpressure-1013.25)*30;
+            this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel+(this.BDSRegisterData.BPSpressure-1013.25)*30;
         }
     }
     
@@ -1018,53 +1011,53 @@ export class CAT048 {
         this.BDSRegisterData.modeS=this.BDSRegisterData.modeS+"BDS: "+decimalBDS1+","+decimalBDS2;
         const decodeModeBDS4 = (chainBits: string) =>{
             const MCPStatus = chainBits.substring(0,1);
-            this.BDSRegisterData.bdsCode4.MCPstatus=parseInt(MCPStatus,2);
-            if(this.BDSRegisterData.bdsCode4.MCPstatus===1){
+            this.BDSRegisterData.MCPstatus=parseInt(MCPStatus,2);
+            if(this.BDSRegisterData.MCPstatus===1){
                 const MCPaltitudeBits=chainBits.substring(1,13);
                 const MCPaltitude=parseInt(MCPaltitudeBits,2);
-                this.BDSRegisterData.bdsCode4.MCPaltitude=MCPaltitude*16;
+                this.BDSRegisterData.MCPaltitude=MCPaltitude*16;
             }
             const FMSstatus=chainBits.substring(13,14);
-            this.BDSRegisterData.bdsCode4.FMSstatus=parseInt(FMSstatus,2);
-            if(this.BDSRegisterData.bdsCode4.FMSstatus===1){
+            this.BDSRegisterData.FMSstatus=parseInt(FMSstatus,2);
+            if(this.BDSRegisterData.FMSstatus===1){
                 const FMSaltitudeBits=chainBits.substring(14,26);
                 const FMSaltitude=parseInt(FMSaltitudeBits,2);
-                this.BDSRegisterData.bdsCode4.FMSaltitude=FMSaltitude*16;
+                this.BDSRegisterData.FMSaltitude=FMSaltitude*16;
             }
             const BPSstatus=chainBits.substring(26,27);
-            this.BDSRegisterData.bdsCode4.BPSstatus=parseInt(BPSstatus,2);
-            if(this.BDSRegisterData.bdsCode4.BPSstatus===1){
+            this.BDSRegisterData.BPSstatus=parseInt(BPSstatus,2);
+            if(this.BDSRegisterData.BPSstatus===1){
                 const BPpressureBits=chainBits.substring(27,38); 
                 const BPSpressure=parseInt(BPpressureBits,2);
-                this.BDSRegisterData.bdsCode4.BPSpressure=2*BPSpressure*0.1+800;
+                this.BDSRegisterData.BPSpressure=2*BPSpressure*0.1+800;
             }
             const modeStatus=chainBits.substring(47,48);
-            this.BDSRegisterData.bdsCode4.modeStatus=parseInt(modeStatus,2);
+            this.BDSRegisterData.modeStatus=parseInt(modeStatus,2);
             const VNAVBits=chainBits.substring(48,49);
-            this.BDSRegisterData.bdsCode4.VNAV=parseInt(VNAVBits,2);
+            this.BDSRegisterData.VNAV=parseInt(VNAVBits,2);
             const ALTHold=chainBits.substring(49,50);
-            this.BDSRegisterData.bdsCode4.ALTHold=parseInt(ALTHold,2);
+            this.BDSRegisterData.ALTHold=parseInt(ALTHold,2);
             const approach=chainBits.substring(50,51);
-            this.BDSRegisterData.bdsCode4.approach=parseInt(approach,2);
+            this.BDSRegisterData.approach=parseInt(approach,2);
             const targetAltStatus=chainBits.substring(53,54);
             if(parseInt(targetAltStatus,2)===1){
-                this.BDSRegisterData.bdsCode4.targetAltStatus="Source information deliberately provided";
+                this.BDSRegisterData.targetAltStatus="Source information deliberately provided";
             }
             else{
-                this.BDSRegisterData.bdsCode4.targetAltStatus="No source information provided.";
+                this.BDSRegisterData.targetAltStatus="No source information provided.";
             }
             const targetAltSource=chainBits.substring(53,55);
             if(targetAltSource==="00"){
-                this.BDSRegisterData.bdsCode4.targetAltSource="Unknown";     
+                this.BDSRegisterData.targetAltSource="Unknown";     
             }
             else if(targetAltSource==="01"){
-                this.BDSRegisterData.bdsCode4.targetAltSource="FCU/MCP selected altitude";
+                this.BDSRegisterData.targetAltSource="FCU/MCP selected altitude";
             }
             else if(targetAltSource==="10"){
-                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude";
+                this.BDSRegisterData.targetAltSource="FMS selected altitude";
             }
             else{
-                this.BDSRegisterData.bdsCode4.targetAltSource="FMS selected altitude";
+                this.BDSRegisterData.targetAltSource="FMS selected altitude";
             }
 
 
@@ -1075,7 +1068,7 @@ export class CAT048 {
         }
         const decodeModeBDS5 = (chainBits: string) => {
             var RASstatus = chainBits.substring(0,1);
-            this.BDSRegisterData.bdsCode5.RASstatus = parseInt(RASstatus, 2);
+            this.BDSRegisterData.RASstatus = parseInt(RASstatus, 2);
 
             if (RASstatus == '1') {
                 var sign = chainBits.substring(1,2);
@@ -1088,12 +1081,12 @@ export class CAT048 {
                     }
                 }
                 if (angle != 90 && angle != -90){
-                    this.BDSRegisterData.bdsCode5.RollAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                    this.BDSRegisterData.RollAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
                 }
             }
             
             var TTAstatus = chainBits.substring(11,12);
-            this.BDSRegisterData.bdsCode5.TTAstatus = parseInt(TTAstatus, 2);
+            this.BDSRegisterData.TTAstatus = parseInt(TTAstatus, 2);
 
             if (TTAstatus == '1') {
                 var sign = chainBits.substring(12,13);
@@ -1106,12 +1099,12 @@ export class CAT048 {
                     }
                 }
                 if (angle != 180 && angle != 180){
-                    this.BDSRegisterData.bdsCode5.TrueTrackAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                    this.BDSRegisterData.TrueTrackAngle = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
                 }
             }
 
             var GSstatus = chainBits.substring(23,24);
-            this.BDSRegisterData.bdsCode5.GSstatus = parseInt(GSstatus, 2);
+            this.BDSRegisterData.GSstatus = parseInt(GSstatus, 2);
 
             if (GSstatus == '1') {
                 var GroundSpeed = chainBits.substring(24,34);
@@ -1122,11 +1115,11 @@ export class CAT048 {
                         kt += 1024 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode5.GroundSpeed = parseFloat(kt.toFixed(3));
+                this.BDSRegisterData.GroundSpeed = parseFloat(kt.toFixed(3));
             }
 
             var TARstatus = chainBits.substring(34,35);
-            this.BDSRegisterData.bdsCode5.TARstatus = parseInt(TARstatus, 2);
+            this.BDSRegisterData.TARstatus = parseInt(TARstatus, 2);
 
             if (TARstatus == '1') {
                 var sign = chainBits.substring(35,36);
@@ -1138,11 +1131,11 @@ export class CAT048 {
                         angle += (sign === '1' ? -1 : 1) * 8 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode5.TrackAngleRate = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                this.BDSRegisterData.TrackAngleRate = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
             }
 
             var TAstatus = chainBits.substring(45,46);
-            this.BDSRegisterData.bdsCode5.TAstatus = parseInt(TAstatus, 2);
+            this.BDSRegisterData.TAstatus = parseInt(TAstatus, 2);
 
             if (TAstatus == '1') {
                 var TrueAirspeed = chainBits.substring(46,56);
@@ -1153,12 +1146,12 @@ export class CAT048 {
                         kt += 1024 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode5.TrueAirspeed = parseFloat(kt.toFixed(3));
+                this.BDSRegisterData.TrueAirspeed = parseFloat(kt.toFixed(3));
             }
         }
         const decodeModeBDS6 =(chainBits: string) => {
             var HDGstatus = chainBits.substring(0,1);
-            this.BDSRegisterData.bdsCode6.HDGstatus = parseInt(HDGstatus, 2);
+            this.BDSRegisterData.HDGstatus = parseInt(HDGstatus, 2);
 
             if (HDGstatus == '1') {
                 var sign = chainBits.substring(1,2);
@@ -1171,12 +1164,12 @@ export class CAT048 {
                     }
                 }
                 if (angle != 180 && angle != -180){
-                    this.BDSRegisterData.bdsCode6.HDG = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
+                    this.BDSRegisterData.HDG = (sign === '1' ? -1 : 1) * parseFloat(angle.toFixed(3));
                 }
             }
 
             var IASstatus = chainBits.substring(12,13);
-            this.BDSRegisterData.bdsCode6.IASstatus = parseInt(IASstatus, 2);
+            this.BDSRegisterData.IASstatus = parseInt(IASstatus, 2);
 
             if (IASstatus == '1') {
                 var IAS = chainBits.substring(13,23);
@@ -1187,11 +1180,11 @@ export class CAT048 {
                         kt += 512 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode6.IAS = parseFloat(kt.toFixed(3));
+                this.BDSRegisterData.IAS = parseFloat(kt.toFixed(3));
             }
 
             var MACHstatus = chainBits.substring(23,24);
-            this.BDSRegisterData.bdsCode6.MACHstatus = parseInt(MACHstatus, 2);
+            this.BDSRegisterData.MACHstatus = parseInt(MACHstatus, 2);
 
             if (MACHstatus == '1') {
                 var MACH = chainBits.substring(24,34);
@@ -1202,11 +1195,11 @@ export class CAT048 {
                         mach += 2048 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode6.MACH = parseFloat(mach.toFixed(3))/1000;
+                this.BDSRegisterData.MACH = parseFloat(mach.toFixed(3))/1000;
             }
 
             var BARstatus = chainBits.substring(34,35);
-            this.BDSRegisterData.bdsCode6.BARstatus = parseInt(BARstatus, 2);
+            this.BDSRegisterData.BARstatus = parseInt(BARstatus, 2);
 
             if (BARstatus == '1') {
                 var sign = chainBits.substring(35,36);
@@ -1218,11 +1211,11 @@ export class CAT048 {
                         ft += (sign === '1' ? -1 : 1) * 8192 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode6.BAR = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
+                this.BDSRegisterData.BAR = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
             }
 
             var IVVstatus = chainBits.substring(45,46);
-            this.BDSRegisterData.bdsCode6.IVVstatus = parseInt(IVVstatus, 2);
+            this.BDSRegisterData.IVVstatus = parseInt(IVVstatus, 2);
 
             if (IVVstatus == '1') {
                 var sign = chainBits.substring(46,47);
@@ -1234,7 +1227,7 @@ export class CAT048 {
                         ft += (sign === '1' ? -1 : 1) * 8192 / Math.pow(2, i);
                     }
                 }
-                this.BDSRegisterData.bdsCode6.IVV = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
+                this.BDSRegisterData.IVV = (sign === '1' ? -1 : 1) * parseFloat(ft.toFixed(3));
             }
         }
         if(decimalBDS1===4){
@@ -1367,11 +1360,6 @@ interface CommunicationsACASCapabilityFlightStatus {
 
 interface BDSRegisterData {
     modeS: string;
-    bdsCode4: BDSCode4;
-    bdsCode5: BDSCode5;
-    bdsCode6: BDSCode6;
-}
-interface BDSCode4{
     MCPstatus: number; //1 
     MCPaltitude: number; //2-13
     FMSstatus: number; //14
@@ -1384,8 +1372,6 @@ interface BDSCode4{
     approach: number; //51
     targetAltStatus: string; //54
     targetAltSource:  string; //55-56
-}
-interface BDSCode5{
     RASstatus: number; 
     RollAngle: number; 
     TTAstatus: number; 
@@ -1396,8 +1382,6 @@ interface BDSCode5{
     TrackAngleRate: number; 
     TAstatus: number; 
     TrueAirspeed: number;
-}
-interface BDSCode6{
     HDGstatus: number; 
     HDG: number; 
     IASstatus: number; 
