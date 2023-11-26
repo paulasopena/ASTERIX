@@ -28,6 +28,7 @@ const MapComponent: React.FC = () => {
       try {
         const aircrafts =await getAircrafts('230502-est-080001_BCN_60MN_08_09.csv');
         if (aircrafts != undefined) {
+          console.log(aircrafts)
           setFileData(JSON.parse(aircrafts));
         }
         
@@ -56,6 +57,7 @@ const MapComponent: React.FC = () => {
         map.add(graphicsLayerRef.current);
 
         fileData.map((message, index)=>{
+          console.log("HEY")
           // const initialLocation = message.route[0];
           const markerGraphic = new Graphic({
             // geometry: { type: 'point', longitude: initialLocation.lng, latitude: initialLocation.lat },

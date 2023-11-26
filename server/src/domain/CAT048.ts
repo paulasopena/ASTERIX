@@ -589,11 +589,11 @@ export class CAT048 {
         //console.log('theta: ' + this.measuredPositionPolarCoordinates.theta);
         //console.log('FL: ' + this.flightLevelBinaryRepresentation.flightLevel);
         //console.log('Elevation: ' + el);
-        const rho = this.measuredPositionPolarCoordinates.rho * (Math.PI/180);
+        const rho = this.measuredPositionPolarCoordinates.rho * 1852;
         const theta = this.measuredPositionPolarCoordinates.theta * (Math.PI/180);
         const polarCoordinates = new CoordinatesPolar(rho, el, theta);
         const radarCartesians: CoordinatesXYZ = geoUtils.changeRadarSpherical2RadarCartesian(polarCoordinates)!;
-        const radarCoordinates = new CoordinatesWGS84(41 + 18 / 60 + 2.5284 / 3600, -(2 + 6 / 60 + 7.4095 / 3600), 2007 + 25.25 );
+        const radarCoordinates = new CoordinatesWGS84(41 + 18 / 60 + 2.5284 / 3600, (2 + 6 / 60 + 7.4095 / 3600), 2.007 + 25.25 );
         const geocentric = geoUtils.changeRadarCartesian2Geocentric(radarCoordinates, radarCartesians);
         const geodesic = geoUtils.changeGeocentric2Geodesic(geocentric);
         this.calculatedPositionLLACoordinates.lat = geodesic!.Lat;
