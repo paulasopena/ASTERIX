@@ -37,8 +37,8 @@ export class CoordinatesWGS84 {
 export class GeoUtils1 {
     private A: number;
     private E2: number;
-    private translationMatrixHT: Map<CoordinatesWGS84, GeneralMatrix> = new Map();
-    private rotationMatrixHT: Map<CoordinatesWGS84, GeneralMatrix> = new Map();
+    private translationMatrixHT: Map<CoordinatesWGS84, GeneralMatrix> = new Map<CoordinatesWGS84, GeneralMatrix>();
+    private rotationMatrixHT: Map<CoordinatesWGS84, GeneralMatrix> = new Map<CoordinatesWGS84, GeneralMatrix>();
     private ALMOST_ZERO = 1e-10; 
     private REQUIRED_PRECISION = 1e-12; 
   
@@ -64,15 +64,13 @@ export class GeoUtils1 {
         } else {
             H = 0;
         }
-
-        console.log('H: ' + H);
-        console.log('Hri: ' + Hri);
-        
-        console.log('A: ' + this.A)
-
+        //console.log('H: ' + H);
+        //console.log('Hri: ' + Hri);
+        //console.log('Rho: ' + rho);
+        //console.log('A: ' + this.A)
         const asinArg = (2 * this.A * (H - Hri) + H^2 - Hri^2 - rho^2) / (2 * rho * (this.A + Hri));
 
-        console.log('Asin argument: ' + asinArg);
+        //console.log('Asin argument: ' + asinArg);
 
         if (Math.abs(asinArg) <= 1) {
             El = Math.asin(asinArg);
@@ -81,20 +79,25 @@ export class GeoUtils1 {
             El = NaN; 
         }
 
-        console.log('El: ' + El);
+        //console.log('El: ' + El);
 
         return El;
     }
 
     changeRadarSpherical2RadarCartesian(polarCoordinates: CoordinatesPolar): CoordinatesXYZ | null {
         if (polarCoordinates == null) return null;
-
+        /*
         let res: CoordinatesXYZ = new CoordinatesXYZ(
             polarCoordinates.Rho * Math.cos(polarCoordinates.Elevation) * Math.sin(polarCoordinates.Theta),
             polarCoordinates.Rho * Math.cos(polarCoordinates.Elevation) * Math.cos(polarCoordinates.Theta),
             polarCoordinates.Rho * Math.sin(polarCoordinates.Elevation)
         );
-
+        */
+        let res: CoordinatesXYZ = new CoordinatesXYZ(
+            polarCoordinates.Rho * Math.sin(polarCoordinates.Elevation) * Math.cos(polarCoordinates.Theta),
+            polarCoordinates.Rho * Math.sin(polarCoordinates.Elevation) * Math.sin(polarCoordinates.Theta),
+            polarCoordinates.Rho * Math.cos(polarCoordinates.Elevation)
+        );
         return res;
     }
 
@@ -103,6 +106,7 @@ export class GeoUtils1 {
         let rotationMatrix: GeneralMatrix = this.obtainRotationMatrix(radarCoordinates)!;
 
         let coefInput: number[][] = [[cartesianCoordinates.X], [cartesianCoordinates.Y], [cartesianCoordinates.Z]];
+        
         let inputMatrix: GeneralMatrix = new GeneralMatrix(3, 1, coefInput);
 
         let R1: GeneralMatrix = rotationMatrix.transpose();
@@ -160,23 +164,27 @@ export class GeoUtils1 {
 
         return res;
     }
-
     obtainTranslationMatrix(radarCoordinates: CoordinatesWGS84): GeneralMatrix | null {
         let translationMatrix: GeneralMatrix | null = null;
-
-        if (!this.translationMatrixHT.has(radarCoordinates)) {
-            translationMatrix = this.calculateTranslationMatrix(radarCoordinates, this.A, this.E2);
-            this.translationMatrixHT.set(radarCoordinates, translationMatrix);
-        } else {
-            translationMatrix = this.translationMatrixHT.get(radarCoordinates) || null;
+        if(this.translationMatrixHT==null){
+            this.translationMatrixHT= new Map<CoordinatesWGS84, GeneralMatrix>();
         }
-
+        if (this.translationMatrixHT.has(radarCoordinates)) {
+            translationMatrix = this.translationMatrixHT.get(radarCoordinates) || null;
+        } else {
+            translationMatrix = this.calculateTranslationMatrix(radarCoordinates, this.A, this.E2);
+            if (translationMatrix) {
+                this.translationMatrixHT.set(radarCoordinates, translationMatrix);
+            }
+        }
         return translationMatrix;
     }
 
     obtainRotationMatrix(radarCoordinates: CoordinatesWGS84): GeneralMatrix | null {
         let rotationMatrix: GeneralMatrix | null = null;
-
+        if(this.rotationMatrixHT==null){
+            this.rotationMatrixHT=new Map<CoordinatesWGS84, GeneralMatrix>(); 
+        }
         if (!this.rotationMatrixHT.has(radarCoordinates)) {
             rotationMatrix = this.calculateRotationMatrix(radarCoordinates.Lat, radarCoordinates.Lon);
             this.rotationMatrixHT.set(radarCoordinates, rotationMatrix);
@@ -213,3 +221,5 @@ export class GeoUtils1 {
     
     
 }
+
+
