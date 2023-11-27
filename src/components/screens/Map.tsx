@@ -116,14 +116,17 @@ const MapComponent: React.FC = () => {
     window.location.href = fileUrl;
   };
 
+
   const generateKML = () => {
     const root = create({
       version: "1.0",
       encoding: "UTF-8",
     }).ele("kml", { xmlns: "http://www.opengis.net/kml/2.2" });
+    const document = root.ele("Document");
 
+    
     fileData.forEach((flight) => {
-      const placemark = root.ele("Placemark");
+      const placemark = document.ele("Placemark");
       const nameNode: XMLBuilder = placemark.ele("name");
       nameNode.txt(`Aircraft Identification: ${flight.aircraftIdentification}`);
       const descriptionNode: XMLBuilder = placemark.ele("description");
