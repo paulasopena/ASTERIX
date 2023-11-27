@@ -1,5 +1,5 @@
 import assert from "assert";
-import { CoordinatesPolar, CoordinatesWGS84, CoordinatesXYZ, GeoUtils1 } from "./GeoUtils1";
+import { CoordinatesPolar, calculateElevation, GeoUtils, getTheRadar } from "./GeneralMatrix";
 
 export class CAT048 {
     messages: Buffer;
@@ -583,18 +583,12 @@ export class CAT048 {
     }
 
     async setLatitudeLongitude () {
-        const geoUtils = new GeoUtils1();
-        const el = geoUtils.calculateElevation(this.measuredPositionPolarCoordinates.rho, this.flightLevelBinaryRepresentation.flightLevel);
-        const rho = this.measuredPositionPolarCoordinates.rho * 1852;
-        const theta = this.measuredPositionPolarCoordinates.theta * (Math.PI/180);
-        const polarCoordinates = new CoordinatesPolar(rho, el, theta);
-        const radarCartesians: CoordinatesXYZ = geoUtils.changeRadarSpherical2RadarCartesian(polarCoordinates)!;
-        // W=-1; E=1
-        const radarCoordinates = new CoordinatesWGS84((41 + 18 / 60 + 2.5284 / 3600)* Math.PI/180, (2 + 6 / 60 + 7.4095 / 3600)*Math.PI/180, 2.007 + 25.25 );
-        const geocentric = geoUtils.changeRadarCartesian2Geocentric(radarCoordinates, radarCartesians);
-        const geodesic = geoUtils.changeGeocentric2Geodesic(geocentric);
-        this.calculatedPositionLLACoordinates.lat = geodesic!.Lat;
-        this.calculatedPositionLLACoordinates.lng = geodesic!.Lon;
+        const radarCoords=getTheRadar();
+        const geoUtils = new GeoUtils(radarCoords);
+        const polarCoordinatesDetected = new CoordinatesPolar(this.measuredPositionPolarCoordinates.rho * 1852, this.measuredPositionPolarCoordinates.theta * (Math.PI/180),this.flightLevelBinaryRepresentation.flightLevel!*100*0.3048);
+        const finalConversion = geoUtils.conversion(polarCoordinatesDetected)
+        this.calculatedPositionLLACoordinates.lat = finalConversion!.Lat*180.0/Math.PI;
+        this.calculatedPositionLLACoordinates.lng = finalConversion!.Lon*180.0/Math.PI;
     }
 
     async setCalculatedPositionCartesianCoordinates(buffer: Buffer) {
