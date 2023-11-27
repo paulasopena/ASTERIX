@@ -585,7 +585,8 @@ export class CAT048 {
     async setLatitudeLongitude () {
         const radarCoords=getTheRadar();
         const geoUtils = new GeoUtils(radarCoords);
-        const polarCoordinatesDetected = new CoordinatesPolar(this.measuredPositionPolarCoordinates.rho * 1852, this.measuredPositionPolarCoordinates.theta * (Math.PI/180),this.flightLevelBinaryRepresentation.flightLevel!*100*0.3048);
+        const elevation = calculateElevation(this.measuredPositionPolarCoordinates.rho, this.flightLevelBinaryRepresentation.flightLevel)
+        const polarCoordinatesDetected = new CoordinatesPolar(this.measuredPositionPolarCoordinates.rho * 1852, elevation, this.measuredPositionPolarCoordinates.theta * (Math.PI/180));
         const finalConversion = geoUtils.conversion(polarCoordinatesDetected)
         this.calculatedPositionLLACoordinates.lat = finalConversion!.Lat*180.0/Math.PI;
         this.calculatedPositionLLACoordinates.lng = finalConversion!.Lon*180.0/Math.PI;
