@@ -9,6 +9,7 @@ import { Aircraft } from '../../domain/Aircraft';
 import {create} from 'xmlbuilder2';
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
 import { saveAs } from "file-saver";
+import { SimpleMarkerSymbol } from 'esri/symbols';
 
 const MapComponent: React.FC = () => {
   const mapDivRef = useRef<HTMLDivElement>(null);
@@ -43,8 +44,8 @@ const MapComponent: React.FC = () => {
     fetchData();
   }, []);
   useEffect(() => {
-    loadModules(['esri/Map', 'esri/views/MapView', 'esri/layers/GraphicsLayer', 'esri/Graphic', 'esri/symbols/SimpleMarkerSymbol']).then(
-      ([Map, MapView, GraphicsLayer, Graphic, SimpleMarkerSymbol]) => {
+    loadModules(['esri/Map', 'esri/views/MapView', 'esri/layers/GraphicsLayer', 'esri/Graphic']).then(
+      ([Map, MapView, GraphicsLayer, Graphic]) => {
         const map = new Map({ basemap: 'streets' });
         const view = new MapView({
           container: mapDivRef.current!,
@@ -59,16 +60,42 @@ const MapComponent: React.FC = () => {
         graphicsLayerRef.current = new GraphicsLayer();
         map.add(graphicsLayerRef.current);
 
-        fileData.map((message, index)=>{
-          console.log("HEY")
-          // const initialLocation = message.route[0];
-          const markerGraphic = new Graphic({
-            // geometry: { type: 'point', longitude: initialLocation.lng, latitude: initialLocation.lat },
-            geometry: { type: 'point', longitude: 1.048, latitude: 41.18 },
-            symbol: new SimpleMarkerSymbol({ color: 'red' }),
-          });
-          graphicsLayerRef.current.add(markerGraphic);
+        fileData.map((aircraft)=>{
+          const trajectory = aircraft.route.map((position) => {
+            return {
+              type: 'point',
+              longitude: position.lng,
+              latitude: position.lat,
+            };
 
+          });
+
+          const initialLocation = aircraft.route[0];
+
+          const markerGraphic = new Graphic({
+            geometry: ({ type: 'point', longitude: initialLocation.lng, latitude: initialLocation.lat }),
+            symbol: {
+              type: 'picture-marker',
+              url: `${process.env.PUBLIC_URL}/airplane.png`,
+              width: '30px',
+              height: '30px',
+            }
+          });
+
+          const polyline = new Graphic({
+            geometry: {
+              type: 'polyline',
+              paths: trajectory.map((point) => [point.longitude, point.latitude]),
+            },
+            symbol:  {
+              type: 'simple-line',
+              color: [226, 119, 40],
+              width: 1,
+            },
+          });
+
+          graphicsLayerRef.current.add(polyline);
+          graphicsLayerRef.current.add(markerGraphic);
         })
       
 
