@@ -89,7 +89,7 @@ app.get('/aircrafts/:filePath', (req, res) => {
             aircraftIdentification,
             Number(IAS),
             Number(flightLevel),
-            [{ lat: Number(lat), lng: Number(lng), height: Number(Height), timeOfDay: String(timeOfDay) }]
+            [{ lat: Number(lat), lng: Number(lng), height: Number(flightLevel)*100*0.3048, timeOfDay: String(timeOfDay) }]
           );
 
           aircraftMap[aircraftIdentification] = newAircraft;

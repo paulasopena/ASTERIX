@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
+import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline, PlayOutline, StopSharp, FlashOutline} from 'react-ionicons';
 import { useNavigate } from 'react-router-dom';
 import { fetchBytes, getAircrafts } from "../../asterix/file_manager";
 import { Map } from 'react-map-gl';
@@ -60,7 +60,10 @@ const MapComponent: React.FC = () => {
   const [earliestTime, setEarliestTime] = useState<number>(0);
   const [latestTime, setLatestTime] = useState<number>(100);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  
+  const [displayCurrentTime, setDisplayCurrentTime] = useState<string>('');
+  const [displayLastestTime, setDisplayLatestTime] = useState<string>('');
+  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -83,6 +86,7 @@ const MapComponent: React.FC = () => {
           setEarliestTime(earliest);
           setLatestTime(latest);
           setCurrentTime(earliest);
+          
         }
         
       } catch (error) {
@@ -92,18 +96,45 @@ const MapComponent: React.FC = () => {
 
     fetchData();
   }, []);
-
+  
   useEffect(() => {
-    if (fileData.length > 0 && currentTime !== null) {
-
+    if (isSimulationRunning && fileData.length > 0 && currentTime !== null) {
       const intervalId = setInterval(() => {
         setCurrentTime((prevTime) => prevTime + 5);
+        expressTimeHHMMSS();
         updatePositions();
       }, 500);
 
       return () => clearInterval(intervalId);
     }
-  }, [fileData, currentTime]);
+  }, [isSimulationRunning, fileData, currentTime]);
+
+  const startSimulation = () => {
+    setIsSimulationRunning(true);
+  };
+
+  const stopSimulation = () => {
+    setIsSimulationRunning(false);
+  };
+
+  const expressTimeHHMMSS = () => {
+    const hours = Math.floor(currentTime / 3600);
+    const minutesRes = currentTime % 3600;
+    const minutes = Math.floor(minutesRes / 60);
+    const seconds = Math.floor(minutesRes % 60);
+    setDisplayCurrentTime(`${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`);
+  
+    const hoursLatest = Math.floor((latestTime - currentTime) / 3600);
+    const minutesLatestRes = (latestTime - currentTime) % 3600;
+    const minutesLatest = Math.floor(minutesLatestRes / 60);
+    const secondsLatest = Math.floor(minutesLatestRes % 60);
+    setDisplayLatestTime(`${padZero(hoursLatest)}:${padZero(minutesLatest)}:${padZero(secondsLatest)}`);
+  };
+  
+  const padZero = (num: number) => {
+    return num < 10 ? `0${num}` : num;
+  };
+  
 
   const updatePositions = () => {
     const updatedPointsData = fileData.map(aircraft => {
@@ -115,7 +146,7 @@ const MapComponent: React.FC = () => {
           properties: {},
           geometry: {
             type: 'Point',
-            coordinates: [closestPosition.lng, closestPosition.lat],
+            coordinates: [closestPosition.lng, closestPosition.lat, closestPosition.height]
           },
         };
       } else {
@@ -124,7 +155,7 @@ const MapComponent: React.FC = () => {
     }).filter(Boolean);
 
     const routeLines = fileData.map(aircraft => {
-      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat]);
+      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat, position.height]);
       
       const currentIndex = aircraft.route.findIndex(position => {
         const positionTime = convertTimeToSeconds(position.timeOfDay);
@@ -232,7 +263,7 @@ const MapComponent: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-       <div style={{ flex: 1, position: 'relative' }}>
+       <div style={{ flex: 1, position: 'relative'}}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <DeckGL
               initialViewState={INITIAL_VIEW_STATE}
@@ -243,29 +274,43 @@ const MapComponent: React.FC = () => {
             </DeckGL>
           </div>
       </div>
-      <div style={{ width: '75px', padding: '16px', backgroundColor: '#000000', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-        <button onClick={openFile}>
-          <FolderOpenOutline color={'#ffffff'} title={'Open file'} height="50px" width="50px" />
+      <div style={{ width: '75px', padding: '16px', backgroundColor: '#f4f4f4', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={openFile}>
+          <FolderOpenOutline color={'#333'} title={'Open file'} height="50px" width="50px" />
         </button>
-        <button onClick={() => downloadFile()}>
-          <FileTrayOutline color={'#ffffff'} title={'Export to CSV'} height="50px" width="50px" />
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={() => downloadFile()}>
+          <FileTrayOutline color={'#333'} title={'Export to CSV'} height="50px" width="50px" />
         </button>
-        <button onClick={() => generateKML()}>
-          <DownloadOutline color={'#ffffff'} title={'Export to KML'} height="50px" width="50px" />
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={() => generateKML()}>
+          <DownloadOutline color={'#333'} title={'Export to KML'} height="50px" width="50px" />
         </button>
-        <button onClick={seeTableDecoder}>
-          <TabletLandscapeOutline color={'#ffffff'} title={'Open the table'} height="50px" width="50px" />
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={seeTableDecoder}>
+          <TabletLandscapeOutline color={'#333'} title={'Open the table'} height="50px" width="50px" />
         </button>
-
-        <input
+      </div>
+        
+     
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#f4f4f4', padding: '7px', position: 'fixed', bottom: 0, width: '100%' }}>
+      <div style={{ marginRight: '10px' }}>{displayCurrentTime}</div>
+      <input
           type="range"
           min={earliestTime}
           max={latestTime}
           value={currentTime}
           onChange={handleTimelineChange}
           step={1}
-          style={{ width: '100%' }}
+          style={{ width: '70%' }}
         />
+        <div style={{ marginRight: '10px' }}>{displayLastestTime}</div>
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={startSimulation}>
+          <PlayOutline color={'#333'} title={'Play simulation'} height="50px" width="50px" />
+        </button>
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={stopSimulation}>
+          <StopSharp color={'#333'} title={'Stop simulation'} height="50px" width="50px" />
+        </button>
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}}>
+          <FlashOutline color={'#333'} title={'Fast-forward simulation'} height="50px" width="50px" />
+        </button>
       </div>
     </div>
   )
