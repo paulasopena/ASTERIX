@@ -1,10 +1,10 @@
 export class Aircraft {
-    aircraftIdentification: String;
+    aircraftIdentification: string;
     IAS: Number;
     flightLevel: Number;
     route: [RouteCoordinates];
 
-    constructor(aircraftIdentification: String, IAS: Number, flightLevel: Number, route: [RouteCoordinates]) {
+    constructor(aircraftIdentification: string, IAS: Number, flightLevel: Number, route: [RouteCoordinates]) {
         this.aircraftIdentification = aircraftIdentification;
         this.IAS = IAS;
         this.flightLevel = flightLevel;
@@ -16,9 +16,9 @@ export class Aircraft {
     }
 }
 
-interface RouteCoordinates {
+export interface RouteCoordinates {
     lat: number;
     lng: number;
     height: number;
-    timeOfDay: String;
+    timeOfDay: string;
 }

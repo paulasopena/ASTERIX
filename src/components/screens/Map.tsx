@@ -1,22 +1,52 @@
-import { loadModules } from 'esri-loader';
 import React, { useEffect, useRef, useState } from 'react';
+import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
 import { useNavigate } from 'react-router-dom';
 import { fetchBytes, getAircrafts } from "../../asterix/file_manager";
-import { Message } from '../../domain/Message';
-import { FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline } from 'react-ionicons';
-import './HomeStyle.css';
-import { Aircraft } from '../../domain/Aircraft';
+import { Map } from 'react-map-gl';
+import DeckGL from '@deck.gl/react/typed';
+import {GeoJsonLayer} from '@deck.gl/layers/typed';
 import {create} from 'xmlbuilder2';
-import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
-import { saveAs } from "file-saver";
-import { SimpleMarkerSymbol } from 'esri/symbols';
+import {saveAs} from 'file-saver';
+import {XMLBuilder} from 'xmlbuilder2/lib/interfaces';
+import './HomeStyle.css';
+import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
+
+const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
+const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
+
+const INITIAL_VIEW_STATE = {
+  latitude: 41.3007024,
+  longitude: 2.1020575,
+  zoom: 7,
+  bearing: 0,
+  pitch: 30
+}
+
+const findClosestPosition = (positions: RouteCoordinates[], targetTime: number): RouteCoordinates | null => {
+  let closestPosition = null;
+  let minTimeDifference = Infinity;
+
+  positions.forEach(position => {
+    const positionTime = convertTimeToSeconds(position.timeOfDay);
+    const timeDifference = Math.abs(targetTime - positionTime);
+
+    if (timeDifference < minTimeDifference) {
+      minTimeDifference = timeDifference;
+      closestPosition = position;
+    }
+  });
+
+  return closestPosition;
+};
+
+const convertTimeToSeconds = (timeOfDay: string): number => {
+  const [hours, minutes, seconds] = timeOfDay.split(':').map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
 
 const MapComponent: React.FC = () => {
-  const mapDivRef = useRef<HTMLDivElement>(null);
-  const mapViewRef = useRef<any>(null);
-  const graphicsLayerRef = useRef<any>(null); // Referencia a la capa de gráficos
   const navigation = useNavigate();
-
+  
   const openFile = () => {
     navigation('/picker');
   };
@@ -24,16 +54,35 @@ const MapComponent: React.FC = () => {
   const seeTableDecoder = () => {
     navigation('/home2');
   };
-  
+
   const [fileData, setFileData] = useState<Aircraft[]>([]);
+  const [layerTrayectories, setLayerTrayectories] = useState<any>();
+  const [earliestTime, setEarliestTime] = useState<number>(0);
+  const [latestTime, setLatestTime] = useState<number>(100);
+  const [currentTime, setCurrentTime] = useState<number>(0);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
         const aircrafts =await getAircrafts('230502-est-080001_BCN_60MN_08_09.csv');
         if (aircrafts != undefined) {
-          console.log(aircrafts)
-          setFileData(JSON.parse(aircrafts));
+          const parsedAircrafts = JSON.parse(aircrafts);
+          setFileData(parsedAircrafts);
+
+          const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
+            aircraft.route.forEach((position: { timeOfDay: string; }) => {
+              const timeInSeconds = convertTimeToSeconds(position.timeOfDay);
+              times.push(timeInSeconds);
+            });
+            return times;
+          }, [] as number[]);
+
+          const earliest = Math.min(...allTimes);
+          const latest = Math.max(...allTimes);
+
+          setEarliestTime(earliest);
+          setLatestTime(latest);
+          setCurrentTime(earliest);
         }
         
       } catch (error) {
@@ -43,70 +92,106 @@ const MapComponent: React.FC = () => {
 
     fetchData();
   }, []);
+
   useEffect(() => {
-    loadModules(['esri/Map', 'esri/views/MapView', 'esri/layers/GraphicsLayer', 'esri/Graphic']).then(
-      ([Map, MapView, GraphicsLayer, Graphic]) => {
-        const map = new Map({ basemap: 'streets' });
-        const view = new MapView({
-          container: mapDivRef.current!,
-          map,
-          center: [2.1020575, 41.3007024],
-          zoom: 8,
-        });
+    if (fileData.length > 0 && currentTime !== null) {
 
-        mapViewRef.current = view;
+      const intervalId = setInterval(() => {
+        setCurrentTime((prevTime) => prevTime + 5);
+        updatePositions();
+      }, 500);
 
-  
-        graphicsLayerRef.current = new GraphicsLayer();
-        map.add(graphicsLayerRef.current);
+      return () => clearInterval(intervalId);
+    }
+  }, [fileData, currentTime]);
 
-        fileData.map((aircraft)=>{
-          const trajectory = aircraft.route.map((position) => {
-            return {
-              type: 'point',
-              longitude: position.lng,
-              latitude: position.lat,
-            };
+  const updatePositions = () => {
+    const updatedPointsData = fileData.map(aircraft => {
+      const closestPosition = findClosestPosition(aircraft.route, currentTime);
 
-          });
-
-          const initialLocation = aircraft.route[0];
-
-          const markerGraphic = new Graphic({
-            geometry: ({ type: 'point', longitude: initialLocation.lng, latitude: initialLocation.lat }),
-            symbol: {
-              type: 'picture-marker',
-              url: `${process.env.PUBLIC_URL}/airplane.png`,
-              width: '30px',
-              height: '30px',
-            }
-          });
-
-          const polyline = new Graphic({
-            geometry: {
-              type: 'polyline',
-              paths: trajectory.map((point) => [point.longitude, point.latitude]),
-            },
-            symbol:  {
-              type: 'simple-line',
-              color: [226, 119, 40],
-              width: 1,
-            },
-          });
-
-          graphicsLayerRef.current.add(polyline);
-          graphicsLayerRef.current.add(markerGraphic);
-        })
-      
-
-        return () => {
-          if (mapViewRef.current) {
-            mapViewRef.current.destroy();
-          }
+      if (closestPosition && closestPosition.lng !== undefined && closestPosition.lat !== undefined) {
+        return {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Point',
+            coordinates: [closestPosition.lng, closestPosition.lat],
+          },
         };
+      } else {
+        return null;
       }
-    );
-  }, []);
+    }).filter(Boolean);
+
+    const routeLines = fileData.map(aircraft => {
+      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat]);
+      
+      const currentIndex = aircraft.route.findIndex(position => {
+        const positionTime = convertTimeToSeconds(position.timeOfDay);
+        return Math.abs(currentTime - positionTime) < 5;
+      });
+  
+      const currentLine = {
+        type: 'Feature',
+        properties: {
+          isCurrentLine: true,
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: routeCoordinates.slice(0, currentIndex + 1),
+        },
+      };
+  
+      const restOfRoute = {
+        type: 'Feature',
+        properties: {
+          isCurrentLine: false,
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: routeCoordinates.slice(currentIndex + 1),
+        },
+      };
+  
+      return [currentLine, restOfRoute];
+    }).flat();
+
+    setLayerTrayectories(new GeoJsonLayer({
+      id: 'trayectories',
+      data: {
+        type: 'FeatureCollection',
+        features: [...updatedPointsData, ...routeLines],
+      },
+      filled: true,
+      pointRadiusMinPixels: 1,
+      pointRadiusScale: 1500,
+      getPointRadius: f => (f.geometry.type === 'Point' ? 1 : 0),
+      getFillColor: [206, 122, 165, 255],
+      getLineColor: f => {
+        if (f.geometry.type === 'Point') {
+          return [206, 122, 165, 255];
+        } else if (f.properties?.isCurrentLine) {
+          return [206, 122, 165, 255];
+        } else {
+          return [122, 195, 207, 255];
+        }
+      },
+      getLineWidth: f => (f.geometry.type === 'Point' ? 1 : 100),
+      pickable: true,
+      autoHighlight: true,
+      onClick: (info) => {
+        const aircraft = fileData[info.index];
+        if (aircraft) {
+          alert(aircraft.aircraftIdentification);
+        }
+      }
+    }));
+  };
+
+  const handleTimelineChange = (event: any) => {
+    const value = parseFloat(event.target.value);
+    setCurrentTime(value);
+  };
 
   const downloadFile = () => {
     const filePath = '230502-est-080001_BCN_60MN_08_09.csv';
@@ -147,7 +232,17 @@ const MapComponent: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <div ref={mapDivRef} style={{ flex: 1 }}></div>
+       <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <DeckGL
+              initialViewState={INITIAL_VIEW_STATE}
+              controller={true}
+              layers={layerTrayectories ? [layerTrayectories] : []}
+            >
+              <Map mapStyle={MAP_STYLE}  mapboxAccessToken={MAP_TOKEN} />
+            </DeckGL>
+          </div>
+      </div>
       <div style={{ width: '75px', padding: '16px', backgroundColor: '#000000', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
         <button onClick={openFile}>
           <FolderOpenOutline color={'#ffffff'} title={'Open file'} height="50px" width="50px" />
@@ -161,9 +256,20 @@ const MapComponent: React.FC = () => {
         <button onClick={seeTableDecoder}>
           <TabletLandscapeOutline color={'#ffffff'} title={'Open the table'} height="50px" width="50px" />
         </button>
+
+        <input
+          type="range"
+          min={earliestTime}
+          max={latestTime}
+          value={currentTime}
+          onChange={handleTimelineChange}
+          step={1}
+          style={{ width: '100%' }}
+        />
       </div>
     </div>
-  );
+  )
+
 };
 
 export default MapComponent;
