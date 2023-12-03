@@ -63,6 +63,10 @@ const MapComponent: React.FC = () => {
   const [displayCurrentTime, setDisplayCurrentTime] = useState<string>('');
   const [displayLastestTime, setDisplayLatestTime] = useState<string>('');
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+  const [simulationSpeed, setSimulationSpeed] = useState<number>(500);
+  const [buttonColor, setButtonColor] = useState<string>('#333');
+  const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,7 +107,7 @@ const MapComponent: React.FC = () => {
         setCurrentTime((prevTime) => prevTime + 5);
         expressTimeHHMMSS();
         updatePositions();
-      }, 500);
+      }, simulationSpeed);
 
       return () => clearInterval(intervalId);
     }
@@ -213,11 +217,31 @@ const MapComponent: React.FC = () => {
       onClick: (info) => {
         const aircraft = fileData[info.index];
         if (aircraft) {
-          alert(aircraft.aircraftIdentification);
+          setSelectedAircraft(aircraft);
         }
       }
+      
     }));
   };
+
+  const changeSpeed = () =>{
+    if(simulationSpeed===500){
+      setSimulationSpeed(300);
+      setButtonColor('#c0aa0b');
+    }
+    else if(simulationSpeed===300){
+      setSimulationSpeed(100);
+      setButtonColor('#c24a00');
+    }
+    else if(simulationSpeed===200){
+      setSimulationSpeed(50);
+      setButtonColor('#ab0015');
+    }
+    else{
+      setSimulationSpeed(500);
+      setButtonColor('#333');
+    }
+  }
 
   const handleTimelineChange = (event: any) => {
     const value = parseFloat(event.target.value);
@@ -262,7 +286,7 @@ const MapComponent: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden'}}>
        <div style={{ flex: 1, position: 'relative'}}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <DeckGL
@@ -290,7 +314,7 @@ const MapComponent: React.FC = () => {
       </div>
         
      
-      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#f4f4f4', padding: '7px', position: 'fixed', bottom: 0, width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#f4f4f4', padding: '7px', position: 'fixed', bottom: 0, width: '100%', height: '5%' }}>
       <div style={{ marginRight: '10px' }}>{displayCurrentTime}</div>
       <input
           type="range"
@@ -303,15 +327,21 @@ const MapComponent: React.FC = () => {
         />
         <div style={{ marginRight: '10px' }}>{displayLastestTime}</div>
         <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={startSimulation}>
-          <PlayOutline color={'#333'} title={'Play simulation'} height="50px" width="50px" />
+          <PlayOutline color={'#333'} title={'Play simulation'} height="25px" width="25px" />
         </button>
         <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={stopSimulation}>
-          <StopSharp color={'#333'} title={'Stop simulation'} height="50px" width="50px" />
+          <StopSharp color={'#333'} title={'Stop simulation'} height="25px" width="25px" />
         </button>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}}>
-          <FlashOutline color={'#333'} title={'Fast-forward simulation'} height="50px" width="50px" />
+        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={changeSpeed}>
+          <FlashOutline color={buttonColor} title={'Fast-forward simulation'} height="25px" width="25px" />
         </button>
       </div>
+      {selectedAircraft && (
+        <div style={{ position: 'fixed', left: 0, top: 0, padding: '10px', background: '#f4f4f4', border: '1px solid #ccc' }}>
+        <h3>{selectedAircraft.aircraftIdentification}</h3>
+        </div>
+      )}
+
     </div>
   )
 
