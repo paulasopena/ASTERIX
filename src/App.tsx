@@ -12,7 +12,9 @@ function App() {
       <Routes>
         <Route path='/' element={<MapComponent />} />
         <Route path='/home2' element={<Home2/>}></Route>
-        <Route path='/picker' element={<Picker/>}></Route>
+        <Route path='/picker' element={<Picker onClose={function (): void {
+          throw new Error('Function not implemented.');
+        } }/>}></Route>
         <Route path='/map' element={<MapComponent/>}></Route>
       </Routes>
     </div>

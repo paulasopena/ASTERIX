@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SERVER_URL } from '../../environments/environments';
-import { useNavigate } from "react-router-dom";
 
-const Picker = () => {
-    const navigation = useNavigate();
+interface PickerProps {
+    onClose: () => void;
+  }
+  
+const Picker: React.FC<PickerProps> = ({ onClose }) => {
 
     const onDrop = useCallback(async (acceptedFiles: any) => {
         const file = acceptedFiles[0]; 
@@ -25,7 +27,7 @@ const Picker = () => {
 
                 if (response.ok) {
                     console.log('Archivo subido con éxito');
-                    navigation('/map');
+                    onClose();
                 } else {
                     console.error('Error al subir el archivo');
                 }
@@ -33,7 +35,7 @@ const Picker = () => {
                 console.error('Error de red:', error);
             }
         }
-    }, []);
+    }, [onClose]);
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 

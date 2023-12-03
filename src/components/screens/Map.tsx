@@ -10,6 +10,7 @@ import {saveAs} from 'file-saver';
 import {XMLBuilder} from 'xmlbuilder2/lib/interfaces';
 import './HomeStyle.css';
 import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
+import Picker from './PickerScreen';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
@@ -46,9 +47,11 @@ const convertTimeToSeconds = (timeOfDay: string): number => {
 
 const MapComponent: React.FC = () => {
   const navigation = useNavigate();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const openFile = () => {
-    navigation('/picker');
+    setIsModalOpen(!isModalOpen);
   };
 
   const seeTableDecoder = () => {
@@ -71,27 +74,31 @@ const MapComponent: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const aircrafts =await getAircrafts('230502-est-080001_BCN_60MN_08_09.csv');
-        if (aircrafts != undefined) {
-          const parsedAircrafts = JSON.parse(aircrafts);
-          setFileData(parsedAircrafts);
+        const filePathCSV = localStorage.getItem('nombreArchivo');
+        if (filePathCSV) {
+          const filePath = filePathCSV.replace('.ast', '.csv');
+          const aircrafts =await getAircrafts(filePath);
+          if (aircrafts != undefined) {
+            const parsedAircrafts = JSON.parse(aircrafts);
+            setFileData(parsedAircrafts);
 
-          const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
-            aircraft.route.forEach((position: { timeOfDay: string; }) => {
-              const timeInSeconds = convertTimeToSeconds(position.timeOfDay);
-              times.push(timeInSeconds);
-            });
-            return times;
-          }, [] as number[]);
+            const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
+              aircraft.route.forEach((position: { timeOfDay: string; }) => {
+                const timeInSeconds = convertTimeToSeconds(position.timeOfDay);
+                times.push(timeInSeconds);
+              });
+              return times;
+            }, [] as number[]);
 
-          const earliest = Math.min(...allTimes);
-          const latest = Math.max(...allTimes);
+            const earliest = Math.min(...allTimes);
+            const latest = Math.max(...allTimes);
 
-          setEarliestTime(earliest);
-          setLatestTime(latest);
-          setCurrentTime(earliest);
-          
-        }
+            setEarliestTime(earliest);
+            setLatestTime(latest);
+            setCurrentTime(earliest);
+            
+          }
+        }        
         
       } catch (error) {
         console.error('Error fetching file data:', error);
@@ -249,11 +256,15 @@ const MapComponent: React.FC = () => {
   };
 
   const downloadFile = () => {
-    const filePath = '230502-est-080001_BCN_60MN_08_09.csv';
+    const filePathCSV = localStorage.getItem('nombreArchivo');
+    if (filePathCSV) {
+      const filePath = filePathCSV.replace('.ast', '.csv');
   
-    const fileUrl = process.env.PUBLIC_URL + '/' + filePath;
-  
-    window.location.href = fileUrl;
+      const fileUrl = process.env.PUBLIC_URL + '/' + filePath;
+    
+      window.location.href = fileUrl;
+    }
+    
   };
 
 
@@ -302,6 +313,14 @@ const MapComponent: React.FC = () => {
         <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={openFile}>
           <FolderOpenOutline color={'#333'} title={'Open file'} height="50px" width="50px" />
         </button>
+        {isModalOpen && (
+          <div className="modal">
+            <div className="modal-content">
+              <span className="close" onClick={openFile}>&times;</span>
+              <Picker onClose={openFile}/>
+            </div>
+          </div>
+        )}
         <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={() => downloadFile()}>
           <FileTrayOutline color={'#333'} title={'Export to CSV'} height="50px" width="50px" />
         </button>

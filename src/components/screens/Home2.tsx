@@ -11,32 +11,40 @@ import { JSX } from "react/jsx-runtime";
 const Home2 = () => {
   const [fileData, setFileData] = useState<any[]>([]);
   const navigateToTrial = async () => {
-    await fetchBytes('230502-est-080001_BCN_60MN_08_09.ast');
+    const file = localStorage.getItem('nombreArchivo');
+    if (file) {
+      await fetchBytes(file);
+    }
   }
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const filePath = '230502-est-080001_BCN_60MN_08_09.csv';
+        const filePathCSV = localStorage.getItem('nombreArchivo');
+        if (filePathCSV) {
+          const filePath = filePathCSV.replace('.ast', '.csv');
 
-        const response = await fetch(filePath);
-        const blob = await response.blob();
+          const response = await fetch(filePath);
+          const blob = await response.blob();
+        
+          const fileReader = new FileReader();
+          fileReader.onloadend = () => {
+            const csvString = fileReader.result as string;
+            Papa.parse(csvString, {
+              header: true,
+              dynamicTyping: true,
+              complete: (result) => {
+                console.log(result);
+                setFileData(result.data);
+              },
+            });
+          };
       
-        const fileReader = new FileReader();
-        fileReader.onloadend = () => {
-          const csvString = fileReader.result as string;
-          Papa.parse(csvString, {
-            header: true,
-            dynamicTyping: true,
-            complete: (result) => {
-              console.log(result);
-              setFileData(result.data);
-            },
-          });
-        };
-    
-        // Read the file as text
-        fileReader.readAsText(blob);
+          // Read the file as text
+          fileReader.readAsText(blob);
+
+        }
+        
         
       } catch (error) {
         console.error('Error fetching file data:', error);
