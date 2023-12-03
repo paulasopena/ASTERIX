@@ -7,7 +7,7 @@ import { useTable, usePagination, Column } from 'react-table';
 import { useNavigate } from "react-router-dom";
 import './HomeStyle.css';
 import { JSX } from "react/jsx-runtime";
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Home2 = () => {
   const [fileData, setFileData] = useState<any[]>([]);
@@ -17,7 +17,8 @@ const Home2 = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const filePathCSV = localStorage.getItem('nombreArchivo');
+        //const filePathCSV = localStorage.getItem('nombreArchivo');
+        const filePathCSV = '230502-est-080001_BCN_60MN_08_09.ast';
         if (filePathCSV) {
           const filePath = filePathCSV.replace('.ast', '.csv');
 
@@ -171,3 +172,4 @@ const Home2 = () => {
 };
 
 export default Home2;
+

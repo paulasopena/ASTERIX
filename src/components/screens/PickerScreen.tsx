@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SERVER_URL } from '../../environments/environments';
 import { fetchBytes } from "../../asterix/file_manager";
-import { CircularProgress } from '@material-ui/core';
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface PickerProps {
     onClose: () => void;
