@@ -93,18 +93,16 @@ app.get('/aircrafts/:filePath', async (req, res) => {
     const filePathCSV = path.join(currentDir, '../../../public', req.params.filePath);
 
     try {
-      // Comprueba si el archivo CSV existe
       await stat(filePathCSV);
       console.log('El archivo CSV ya existe.');
     } catch (error) {
       const e = error as NodeJS.ErrnoException;
       if (e.code === 'ENOENT') {
-        // El archivo no existe, crea el directorio necesario
         console.log('El archivo CSV no existe, creándolo...');
         const dir = path.dirname(filePathCSV);
         await mkdir(dir, { recursive: true });
       } else {
-        throw error; // Re-lanza cualquier otro error
+        throw error;
       }
     }
 

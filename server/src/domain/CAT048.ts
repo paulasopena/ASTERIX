@@ -643,20 +643,16 @@ export class CAT048 {
         this.mode3ACodeOctalRepresentation.G = octet1[1] === '1' ? 'Garbled code' : 'Default';
         this.mode3ACodeOctalRepresentation.L = octet1[2] === '1' ? 'Mode-3/A code not extracted during the last scan' : 'Mode-3/A code derived from the reply of the transponder';
         var bit13 = octet1[3] === '1' ? 'Spare bit not set to 0' : 'Spare bit set to 0';
-        var octalCode = octet1.slice(1) + octet2; 
+        var octalCode = octet1.slice(4) + octet2; 
 
-        function binaryToOctal(binaryString: string) {
-            while (binaryString.length % 3 !== 0) {
-                binaryString = '0' + binaryString;
-            }
+        function binaryToOctal(binaryString: string): string {
+            const decimal = parseInt(binaryString, 2);
         
-            var octalString = '';
-            for (var i = 0; i < binaryString.length; i += 3) {
-                var octalDigit = parseInt(binaryString.slice(i, i + 3), 2).toString(8);
-                octalString += octalDigit;
-            }
+            var octal = decimal.toString(8);
+
+            octal = octal.padStart(4, '0');
         
-            return octalString;
+            return octal;
         }
 
         this.mode3ACodeOctalRepresentation.mode3A = binaryToOctal(octalCode);
@@ -672,7 +668,7 @@ export class CAT048 {
         
         var flightLevelBinary = octet1.slice(2, 8) + octet2;
 
-        var flightLevelDecimal = parseInt(flightLevelBinary, 2);
+        var flightLevelDecimal = binaryToDecimalComplementOfTwo(flightLevelBinary);
 
         var flightLevelValue = flightLevelDecimal * 0.25;
 
@@ -1384,4 +1380,14 @@ interface BDSRegisterData {
     BAR: number; 
     IVVstatus: number; 
     IVV: number; 
+}
+
+function binaryToDecimalComplementOfTwo(binaryStr: string): number {
+    if (binaryStr[0] === '1') {
+        const invertedBinaryStr = binaryStr.split('').map(bit => bit === '0' ? '1' : '0').join('');
+        const decimalValue = -1 * (parseInt(invertedBinaryStr, 2) + 1);
+        return decimalValue;
+    } else {
+        return parseInt(binaryStr, 2);
+    }
 }

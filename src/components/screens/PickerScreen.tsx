@@ -1,6 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SERVER_URL } from '../../environments/environments';
+import { fetchBytes } from "../../asterix/file_manager";
+import { CircularProgress } from '@material-ui/core';
 
 interface PickerProps {
     onClose: () => void;
@@ -8,10 +10,13 @@ interface PickerProps {
   
 const Picker: React.FC<PickerProps> = ({ onClose }) => {
 
+    const [isUploading, setIsUploading] = useState(false);
+
     const onDrop = useCallback(async (acceptedFiles: any) => {
         const file = acceptedFiles[0]; 
 
         if (file) {
+            setIsUploading(true);
             const fileName = file.name;
             localStorage.setItem('nombreArchivo', fileName);
             console.log('Nombre del archivo guardado en localStorage:', fileName);
@@ -27,12 +32,20 @@ const Picker: React.FC<PickerProps> = ({ onClose }) => {
 
                 if (response.ok) {
                     console.log('Archivo subido con éxito');
-                    onClose();
+                    const file = localStorage.getItem('nombreArchivo');
+                    if (file) {
+                        await fetchBytes(file).then(() => {
+                            onClose();
+                            setIsUploading(false); 
+                        });
+                    }
                 } else {
                     console.error('Error al subir el archivo');
+                    setIsUploading(false);
                 }
             } catch (error) {
                 console.error('Error de red:', error);
+                setIsUploading(false);
             }
         }
     }, [onClose]);
@@ -52,10 +65,14 @@ const Picker: React.FC<PickerProps> = ({ onClose }) => {
 
     return (
         <div>
+            {isUploading ? (
+            <CircularProgress /> 
+            ) : (
             <div {...getRootProps()} style={dropzoneStyle}>
                 <input {...getInputProps()} />
                 <p>Arrastra y suelta un documento aquí o haz clic para seleccionar un archivo</p>
             </div>
+            )}
         </div>
     )
 }

@@ -7,18 +7,15 @@ import { useTable, usePagination, Column } from 'react-table';
 import { useNavigate } from "react-router-dom";
 import './HomeStyle.css';
 import { JSX } from "react/jsx-runtime";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const Home2 = () => {
   const [fileData, setFileData] = useState<any[]>([]);
-  const navigateToTrial = async () => {
-    const file = localStorage.getItem('nombreArchivo');
-    if (file) {
-      await fetchBytes(file);
-    }
-  }
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const filePathCSV = localStorage.getItem('nombreArchivo');
         if (filePathCSV) {
@@ -32,10 +29,11 @@ const Home2 = () => {
             const csvString = fileReader.result as string;
             Papa.parse(csvString, {
               header: true,
-              dynamicTyping: true,
+              dynamicTyping: false,
               complete: (result) => {
                 console.log(result);
                 setFileData(result.data);
+                setIsLoading(false);
               },
             });
           };
@@ -48,6 +46,7 @@ const Home2 = () => {
         
       } catch (error) {
         console.error('Error fetching file data:', error);
+        setIsLoading(false);
       }
     };
 
@@ -92,7 +91,9 @@ const Home2 = () => {
 
   return (
     <div>
-      <button onClick={navigateToTrial} style={{ color: 'white' }}>Decode Data</button>
+      {isLoading ? (
+        <CircularProgress /> // Mostrar el indicador de carga si isLoading es true
+      ) : (
       <table {...getTableProps()} style={{ border: 'solid 1px blue' }}>
         <thead>
           {headerGroups.map((headerGroup: { getHeaderGroupProps: () => JSX.IntrinsicAttributes & React.ClassAttributes<HTMLTableRowElement> & React.HTMLAttributes<HTMLTableRowElement>; headers: any[]; }) => (
@@ -120,6 +121,7 @@ const Home2 = () => {
           })}
         </tbody>
       </table>
+      )}
       <div>
         <button onClick={() => gotoPage(0)} disabled={!canPreviousPage} style={{ color: 'white' }}>
           {'<<'}
