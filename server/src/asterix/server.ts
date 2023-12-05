@@ -23,21 +23,22 @@ app.get('/readFile/:filePath', async (req, res) => {
     const fileStructure = new File(filePath);
     fileStructure.readFile();
     const currentDir = __dirname;
+
+    //CSV per frontend
+
     const filePathCSV = path.join(currentDir, '../../../public', req.params.filePath.replace('.ast', '.csv'));
 
     try {
-      // Comprueba si el archivo CSV existe
       await stat(filePathCSV);
       console.log('El archivo CSV ya existe.');
     } catch (error) {
       const e = error as NodeJS.ErrnoException;
       if (e.code === 'ENOENT') {
-        // El archivo no existe, crea el directorio necesario
         console.log('El archivo CSV no existe, creándolo...');
         const dir = path.dirname(filePathCSV);
         await mkdir(dir, { recursive: true });
       } else {
-        throw error; // Re-lanza cualquier otro error
+        throw error;
       }
     }
 
@@ -55,7 +56,59 @@ app.get('/readFile/:filePath', async (req, res) => {
             return key;
           }
         }).join(',');
+    
         csvWriteStream.write(headers + '\n');
+      }
+
+      const subValues = Object.values(restOfData).map(value => {
+        if (typeof value === 'object') {
+          return Object.values(value).map(subValue => JSON.stringify(subValue)).join(',');
+        } else {
+          return JSON.stringify(value);
+        }
+      }).join(',');
+
+      const row = subValues;
+      csvWriteStream.write(row + '\n');
+
+      decodedData.push({ message: { ...restOfData } });
+    }
+
+    csvWriteStream.end();
+
+    // CSV per excel 
+
+    const filePathCSVExcel = path.join(currentDir, '../../../public', req.params.filePath.replace('.ast', '_excel.csv'));
+
+    try {
+      await stat(filePathCSVExcel);
+      console.log('El archivo CSV ya existe.');
+    } catch (error) {
+      const e = error as NodeJS.ErrnoException;
+      if (e.code === 'ENOENT') {
+        console.log('El archivo CSV no existe, creándolo...');
+        const dir = path.dirname(filePathCSVExcel);
+        await mkdir(dir, { recursive: true });
+      } else {
+        throw error;
+      }
+    }
+
+    const csvWriteStreamExcel = fs.createWriteStream(filePathCSVExcel.replace('.ast', '.csv'));
+
+    for (let i = 0; i < fileStructure.cat048.length; i++) {
+      fileStructure.cat048[i].decodeMessages();
+      const { messages, ...restOfData } = fileStructure.cat048[i];
+
+      if (i === 0) {
+        const headers = Object.keys(restOfData).map(key => {
+          if (typeof restOfData[key as keyof typeof restOfData] === 'object') {
+            return Object.keys(restOfData[key as keyof typeof restOfData]).map(subKey => subKey).join(',');
+          } else {
+            return key;
+          }
+        }).join(',');
+        csvWriteStreamExcel.write(headers + '\n');
       }
 
       const subValues = Object.values(restOfData).map(value => {
@@ -75,11 +128,13 @@ app.get('/readFile/:filePath', async (req, res) => {
       }).join(',');
 
       const row = subValues;
-      csvWriteStream.write(row + '\n');
+      csvWriteStreamExcel.write(row + '\n');
       decodedData.push({ message: { ...restOfData } });
     }
 
-    csvWriteStream.end();
+    csvWriteStreamExcel.end();
+
+
     res.json({});
   } catch (error) {
     console.error('Error reading file:', error);

@@ -258,7 +258,7 @@ const MapComponent: React.FC = () => {
   const downloadFile = () => {
     const filePathCSV = localStorage.getItem('nombreArchivo');
     if (filePathCSV) {
-      const filePath = filePathCSV.replace('.ast', '.csv');
+      const filePath = filePathCSV.replace('.ast', '_excel.csv');
   
       const fileUrl = process.env.PUBLIC_URL + '/' + filePath;
     

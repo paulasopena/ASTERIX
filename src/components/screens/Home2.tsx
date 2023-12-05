@@ -7,7 +7,7 @@ import { useTable, usePagination, Column } from 'react-table';
 import { useNavigate } from "react-router-dom";
 import './HomeStyle.css';
 import { JSX } from "react/jsx-runtime";
-import CircularProgress from '@mui/material/CircularProgress';
+//import CircularProgress from '@mui/material/CircularProgress';
 
 const Home2 = () => {
   const [fileData, setFileData] = useState<any[]>([]);
@@ -93,7 +93,7 @@ const Home2 = () => {
   return (
     <div>
       {isLoading ? (
-        <CircularProgress /> // Mostrar el indicador de carga si isLoading es true
+        <p>Cargando ...</p>
       ) : (
       <table {...getTableProps()} style={{ border: 'solid 1px blue' }}>
         <thead>

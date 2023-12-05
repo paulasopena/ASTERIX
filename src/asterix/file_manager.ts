@@ -3,8 +3,10 @@ import { SERVER_URL } from "../environments/environments";
 
 export async function fetchBytes(filePath: string) {
     try {
+        console.log(filePath);
         const response = await fetch(SERVER_URL + '/readFile/' + filePath);
         const data = await response.text();
+        console.log(data);
         return data;
     } catch (error) {
         console.error('Error fetching file data:', error);
