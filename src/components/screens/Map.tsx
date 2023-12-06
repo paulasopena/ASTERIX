@@ -150,8 +150,9 @@ const MapComponent: React.FC = () => {
   const updatePositions = () => {
     const updatedPointsData = fileData.map(aircraft => {
       const closestPosition = findClosestPosition(aircraft.route, currentTime);
+      const closestPosition2 = findClosestPosition(aircraft.route, currentTime + 5);
 
-      if (closestPosition && closestPosition.lng !== undefined && closestPosition.lat !== undefined) {
+      if (closestPosition && closestPosition2 && closestPosition.lng !== undefined && closestPosition.lat !== undefined && closestPosition != closestPosition2) {
         return {
           type: 'Feature',
           properties: {},
@@ -166,12 +167,16 @@ const MapComponent: React.FC = () => {
     }).filter(Boolean);
 
     const routeLines = fileData.map(aircraft => {
-      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat, position.height]);
-      
+      const TRAIL_LENGTH = 10;
+  
+      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat]);
+  
       const currentIndex = aircraft.route.findIndex(position => {
         const positionTime = convertTimeToSeconds(position.timeOfDay);
         return Math.abs(currentTime - positionTime) < 5;
       });
+  
+      const startIndex = Math.max(0, currentIndex - TRAIL_LENGTH);
   
       const currentLine = {
         type: 'Feature',
@@ -180,22 +185,11 @@ const MapComponent: React.FC = () => {
         },
         geometry: {
           type: 'LineString',
-          coordinates: routeCoordinates.slice(0, currentIndex + 1),
+          coordinates: routeCoordinates.slice(startIndex, currentIndex + 1),
         },
       };
   
-      const restOfRoute = {
-        type: 'Feature',
-        properties: {
-          isCurrentLine: false,
-        },
-        geometry: {
-          type: 'LineString',
-          coordinates: routeCoordinates.slice(currentIndex + 1),
-        },
-      };
-  
-      return [currentLine, restOfRoute];
+      return [currentLine];
     }).flat();
 
     setLayerTrayectories(new GeoJsonLayer({
