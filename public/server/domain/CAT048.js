@@ -1210,11 +1210,11 @@ class CAT048 {
     }
   }
   async setModeCCorrected() {
-    if (this.flightLevelBinaryRepresentation.flightLevel <= 6) {
-      this.modeCcorrected =
-        this.flightLevelBinaryRepresentation.flightLevel +
-        (this.BDSRegisterData.BPSpressure - 1013.25) * 30
-    }
+    if(this.BDSRegisterData.BPSpressure!==0 && this.flightLevelBinaryRepresentation.flightLevel!==0){
+      if(this.flightLevelBinaryRepresentation.flightLevel<=60){
+          this.modeCcorrected=this.flightLevelBinaryRepresentation.flightLevel*100+(this.BDSRegisterData.BPSpressure-1013.25)*30;
+      }
+    } 
   }
 
   async setModeBDS(bufferRegister, chainBitsData) {
@@ -1452,8 +1452,10 @@ class CAT048 {
       decodeModeBDS4(chainBitsData)
     } else if (decimalBDS1 === 5) {
       decodeModeBDS5(chainBitsData)
-    } else {
+    } else if (decimalBDS1===6){
       decodeModeBDS6(chainBitsData)
+    } else {
+      
     }
 
     function binaryToHex(binary) {

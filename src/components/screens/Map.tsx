@@ -275,7 +275,7 @@ const MapComponent: React.FC = () => {
       const nameNode: XMLBuilder = placemark.ele("name");
       nameNode.txt(`Aircraft Identification: ${flight.aircraftIdentification}`);
       const descriptionNode: XMLBuilder = placemark.ele("description");
-      descriptionNode.txt(`IAS: ${flight.IAS}, Flight Level: ${flight.flightLevel}`);
+      descriptionNode.txt(`IAS: ${flight.IAS}, Flight Level: ${flight.flightLevel}, TYP: ${flight.TYP}`);
     
       flight.route.forEach((point) => {
         const placePoint = placemark.ele("Point");

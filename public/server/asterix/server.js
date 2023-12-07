@@ -205,32 +205,34 @@ app.get("/aircrafts/:filePath", async (req, res) => {
           lat,
           lng,
           Height,
-          timeOfDay
+          timeOfDay, 
+          TYP
         } = data
 
-        if (!aircraftMap[aircraftIdentification]) {
-          const newAircraft = new Aircraft(
-            aircraftIdentification,
-            Number(IAS),
-            Number(flightLevel),
-            [
-              {
-                lat: Number(lat),
-                lng: Number(lng),
-                height: Number(flightLevel) * 100 * 0.3048,
-                timeOfDay: String(timeOfDay)
-              }
-            ]
-          )
-
-          aircraftMap[aircraftIdentification] = newAircraft
-        } else {
-          aircraftMap[aircraftIdentification].addRouteElement({
-            lat: Number(lat),
-            lng: Number(lng),
-            height: Number(Height),
-            timeOfDay: String(timeOfDay)
-          })
+        const validTYPValues = [
+          'Single ModeS All-Call',
+          'Single ModeS Roll-Call',
+          'ModeS All-Call + PSR',
+          'ModeS Roll-Call + PSR'
+        ];
+        if(validTYPValues.includes(TYP)){
+          if (!aircraftMap[aircraftIdentification]) {
+            const newAircraft = new Aircraft(
+              aircraftIdentification,
+              Number(IAS),
+              Number(flightLevel),
+              [{ lat: Number(lat), lng: Number(lng), height: Number(flightLevel)*100*0.3048, timeOfDay: String(timeOfDay) }],
+              String(TYP)
+            );
+            aircraftMap[aircraftIdentification] = newAircraft;
+          } else {
+            aircraftMap[aircraftIdentification].addRouteElement({
+              lat: Number(lat),
+              lng: Number(lng),
+              height: Number(flightLevel),
+              timeOfDay: String(timeOfDay)
+            });
+          }
         }
       })
       .on("end", () => {
