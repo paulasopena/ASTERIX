@@ -7,18 +7,18 @@ import { useTable, usePagination, Column } from 'react-table';
 import { useNavigate } from "react-router-dom";
 import './HomeStyle.css';
 import { JSX } from "react/jsx-runtime";
-//import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 const Home2 = () => {
   const [fileData, setFileData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigate();
   
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        //const filePathCSV = localStorage.getItem('nombreArchivo');
-        const filePathCSV = '230502-est-080001_BCN_60MN_08_09.ast';
+        const filePathCSV = localStorage.getItem('nombreArchivo');
         if (filePathCSV) {
           const filePath = filePathCSV.replace('.ast', '.csv');
 
@@ -32,7 +32,6 @@ const Home2 = () => {
               header: true,
               dynamicTyping: false,
               complete: (result) => {
-                console.log(result);
                 setFileData(result.data);
                 setIsLoading(false);
               },
@@ -56,7 +55,6 @@ const Home2 = () => {
 
   const columns = React.useMemo(() => {
     if (fileData.length === 0) return [];
-    console.log(fileData);
     return Object.keys(fileData[0]).map(column => ({
       Header: column,
       accessor: column,
@@ -92,6 +90,9 @@ const Home2 = () => {
 
   return (
     <div>
+      <button onClick={() => navigation('/')} style={{ color: 'white', display: 'flex', alignItems: 'center' }}>
+        <ArrowBackIcon />
+      </button>
       {isLoading ? (
         <p>Cargando ...</p>
       ) : (

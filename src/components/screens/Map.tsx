@@ -11,6 +11,8 @@ import {XMLBuilder} from 'xmlbuilder2/lib/interfaces';
 import './HomeStyle.css';
 import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
 import Picker from './PickerScreen';
+import airplaneIcon from '../../images/airplane.png';
+import { IconLayer } from '@deck.gl/layers/typed';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
@@ -146,25 +148,72 @@ const MapComponent: React.FC = () => {
     return num < 10 ? `0${num}` : num;
   };
   
+  function calculateDirectionAngle(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const degToRad = (degrees: number) => degrees * (Math.PI / 180);
+
+    const deltaLon = degToRad(lon2 - lon1);
+    lat1 = degToRad(lat1);
+    lat2 = degToRad(lat2);
+
+    const y = Math.sin(deltaLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
+
+    let angle = Math.atan2(y, x);
+    angle = (angle + 2 * Math.PI) % (2 * Math.PI); // Asegura que el ángulo esté en el rango [0, 2*pi)
+
+    const radToDeg = (radians: number) => radians * (180 / Math.PI);
+    return (radToDeg(angle) + 270) % 360; // Ajusta para que 0 grados sea hacia arriba
+  }
+  
 
   const updatePositions = () => {
     const updatedPointsData = fileData.map(aircraft => {
       const closestPosition = findClosestPosition(aircraft.route, currentTime);
-      const closestPosition2 = findClosestPosition(aircraft.route, currentTime + 5);
+      const closestPosition2 = findClosestPosition(aircraft.route, currentTime + 10);
 
       if (closestPosition && closestPosition2 && closestPosition.lng !== undefined && closestPosition.lat !== undefined && closestPosition != closestPosition2) {
         return {
           type: 'Feature',
-          properties: {},
           geometry: {
             type: 'Point',
             coordinates: [closestPosition.lng, closestPosition.lat, closestPosition.height]
           },
+          avatar_url: airplaneIcon,
+          nextPosition: [closestPosition2.lng, closestPosition2.lat, closestPosition2.height]
         };
       } else {
         return null;
       }
     }).filter(Boolean);
+
+    const layer = new IconLayer({
+      id: 'icon-layer',
+      data: updatedPointsData,
+      getIcon: d => ({
+        url: d.avatar_url,
+        width: 128,
+        height: 128,
+        anchorY: 128
+      }),
+      // icon size is based on data point's contributions, between 2 - 25
+      getSize: d => Math.max(2, Math.min(d.contributions / 1000 * 25, 25)),
+      pickable: true,
+      sizeScale: 15,
+      getPosition: (d: { geometry: { coordinates: any; }; }) => d.geometry.coordinates,
+      getAngle: d => {
+        if (d.nextPosition) {
+          const angle = calculateDirectionAngle(d.geometry.coordinates[0], d.geometry.coordinates[1], d.nextPosition[0], d.nextPosition[1]);
+          return angle;
+        }
+        return 0;
+      },
+      onClick: (info) => {
+        const aircraft = fileData[info.index];
+        if (aircraft) {
+          setSelectedAircraft(aircraft);
+        }
+      }
+    });
 
     const routeLines = fileData.map(aircraft => {
       const TRAIL_LENGTH = 10;
@@ -192,17 +241,13 @@ const MapComponent: React.FC = () => {
       return [currentLine];
     }).flat();
 
-    setLayerTrayectories(new GeoJsonLayer({
+    setLayerTrayectories([layer, new GeoJsonLayer({
       id: 'trayectories',
       data: {
         type: 'FeatureCollection',
         features: [...updatedPointsData, ...routeLines],
       },
       filled: true,
-      pointRadiusMinPixels: 1,
-      pointRadiusScale: 1500,
-      getPointRadius: f => (f.geometry.type === 'Point' ? 1 : 0),
-      getFillColor: [206, 122, 165, 255],
       getLineColor: f => {
         if (f.geometry.type === 'Point') {
           return [206, 122, 165, 255];
@@ -212,17 +257,9 @@ const MapComponent: React.FC = () => {
           return [122, 195, 207, 255];
         }
       },
-      getLineWidth: f => (f.geometry.type === 'Point' ? 1 : 100),
-      pickable: true,
-      autoHighlight: true,
-      onClick: (info) => {
-        const aircraft = fileData[info.index];
-        if (aircraft) {
-          setSelectedAircraft(aircraft);
-        }
-      }
-      
-    }));
+      getLineWidth: 128,
+      autoHighlight: true,      
+    })]);
   };
 
   const changeSpeed = () =>{
