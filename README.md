@@ -1,19 +1,20 @@
 # ❄️ ASTERIX DECODER ❄️
 
-This project is a decoder and simulator of the information provided in the **ASTERIX** (All-purpose Structured EUROCONTROL Surveillance Information Exchange ) standard.
-The surveillance sensors exchange information with this standarized format (ASTERIX) and to understand the information it is really important to understand how to decode this information.
-The way of decoding this information is the core of the project.
+This project serves as a decoder and simulator for information provided in the **ASTERIX** (All-Purpose Structured EUROCONTROL Surveillance Information Exchange) standard.
 
-ASTERIX classifies its information into different categories depending on the information exchanged. Each surveillance sensor has associated at least one category.
-The category that has been decoded in this project is **CAT048**.
+Surveillance sensors exchange information in this standardized format (ASTERIX), and to comprehend the information, understanding the decoding process is of utmost importance. The decoding of this information forms the core of the project.
+
+ASTERIX categorizes its information into different categories based on the exchanged data. Each surveillance sensor is associated with at least one category. The specific category decoded in this project is **CAT048**.
+
+This software provides a glimpse into the tools that air traffic controllers use to assist them in maintaining the minimum separation between aircraft. Precision is crucial for both airborne and ground operations.
 
 ## 🔸 TECHNOLOGY CHOSEN 🔸
 
 The ASTERIX codec has been developed with a combination of technologies. 
 
-The client-side application is built using **React** with **TypeScript**, taking advantage of the benefits that both technologies bring to the table.
-**React** is a popular JavaScript library for building web user interfaces. By incorporating **TypeScript** into the mix, the development team benefits from static typing, enabling better code quality, early error detection, and improved developer tooling.
-Since the output of the project had to be a desktop application, we introduced **Electron** into the equation. Electron allows developers to build cross-platform desktop applications using web technologies such as HTML, CSS, and JavaScript (or TypeScript in this case). This ensures that the ASTERIX codec can be deployed on various operating systems, providing a consistent user experience regardless of the platform.
+The client-side application is built using **React** with **TypeScript**:
+* **React** is a popular JavaScript library for building web user interfaces. By incorporating **TypeScript** into the mix, the development team benefits from static typing, enabling better code quality, early error detection, and improved developer tooling.
+* Since the output of the project had to be a desktop application, we introduced **Electron** into the equation. Electron allows developers to build cross-platform desktop applications using web technologies such as HTML, CSS, and JavaScript (or TypeScript in this case). This ensures that the ASTERIX codec can be deployed on various operating systems, providing a consistent user experience regardless of the platform.
 
 On the server side, the technology of choice was **Express.js**, a fast and minimalist web application framework for Node.js. Leveraging the asynchronous, event-driven nature of Node.js, Express allows for the creation of lightweight and scalable server-side applications. Its simplicity makes it an excellent choice for building RESTful APIs, handling HTTP requests and responses efficiently.
 
