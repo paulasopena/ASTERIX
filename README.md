@@ -187,7 +187,7 @@ Subsequently, when the simulation phase commences, another HTTP request is sent 
 
 ## 🔸 HOW TO MAKE IT WORK 🔸
 Videos that explain the software demo.
-## GANTT DIAGRAM AND PROJECT DEVELOPMENT
+## 🔸GANTT DIAGRAM AND PROJECT DEVELOPMENT 🔸
 
 In order to summarize the development progress contributed by the three main contributors, a Gantt diagram has been created.
 
