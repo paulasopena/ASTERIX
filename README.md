@@ -20,6 +20,15 @@ On the server side, the technology of choice was **Express.js**, a fast and mini
 
 In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript and Electron for the client-side, Express for the server-side, and Node.js as the runtime bridging these components. This technology stack ensures a seamless development experience, efficient communication between client and server, and the flexibility to deploy the application as an executable program.
 
+<img src="https://github.com/paulasopena/ASTERIX/assets/91852254/505802ce-aa5d-4415-b2e4-d5ae9e2a0ba1" alt="logo512" width="100"> <img src="https://github.com/paulasopena/ASTERIX/assets/91852254/4068cbb2-e449-45a4-ae48-9d584ea5fe79" alt="Electron Logo" width="100"> 
+
+
+
+
+### 🔹 LIBRARIES
+Regarding the libraries used, we want to highlight the one utilized for the map:
+* We have chosen to employ Deck.gl, a library that provides us with a 3D map in various styles.
+
 ## 🔸 STRUCTURE OF THE CODE 🔸
 
 This section is clearly divide it into two parts:
