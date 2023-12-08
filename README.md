@@ -134,17 +134,22 @@ class Aircraft {
 </details>
 
 ### FLOW STRUCTURE
-As it has been commented in the technologies section, the code has a structure of client and server. 
-As an overview, basically the client sends the file to decode through an HTTP POST REQUEST and the server decodes the file, creates a CSV with the decoded information and saves it into a common location in the project due to its large size. This last part has been done this way because the CSV decoded has a larger size than the one an HTTP REQUEST can have. 
-From there, when the simulation has to start, another HTTP request is done to the server which responds with a list of Aircrafts and its routes. This way the trajectories can be simulated in the client.
 
+As mentioned in the technology section, the project follows a client-server structure. In essence, the client initiates an HTTP POST REQUEST to send a file for decoding, and the server undertakes the decoding process. Upon decoding, a CSV file containing the decoded information is generated and stored in a designated location within the project. This approach is adopted due to the decoded CSV's considerable size, surpassing the constraints of a typical HTTP REQUEST.
+
+Subsequently, when the simulation phase commences, another HTTP request is sent to the server. In response, the server provides a list of Aircrafts along with their respective routes. This crucial data enables the client to simulate trajectories effectively.
+
+![Diagrama sin título drawio (1)](https://github.com/paulasopena/ASTERIX/assets/91852254/7cf31482-19a2-4dec-99a2-44a250493186)
 
 ## HOW TO MAKE IT WORK
 
 Launches the test runner in the interactive watch mode.\
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-## FEATURES
+## GANTT DIAGRAM AND PROJECT DEVELOPMENT
+
+In order to summarize the development progress contributed by the three main contributors, a Gantt diagram has been created.
+
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
