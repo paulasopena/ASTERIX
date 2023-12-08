@@ -25,7 +25,10 @@ This section is clearly divide it into two parts:
 ### CLASSES AND OBJECTS USED
 #### CAT048
 This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
-```Javascript
+<details>
+  <summary>Haz clic para ver el contenido</summary>
+  
+  ```Javascript
 class CAT048 {
   constructor(messages) {
     this.messages = messages
@@ -106,6 +109,8 @@ class CAT048 {
     }
   }
 ````
+</details>
+
 ####
 ### FLOW STRUCTURE
 ## HOW TO MAKE IT WORK
