@@ -104,8 +104,14 @@ const MapComponent: React.FC = () => {
               return times;
             }, [] as number[]);
 
-            const earliest = Math.min(...allTimes);
-            const latest = Math.max(...allTimes);
+            let earliest = Infinity;
+            let latest = -Infinity;
+
+            allTimes.forEach((time: number) => {
+              if (time < earliest) earliest = time;
+              if (time > latest) latest = time;
+            });
+
 
             setEarliestTime(earliest);
             setLatestTime(latest);
@@ -157,8 +163,6 @@ const MapComponent: React.FC = () => {
           if (aircrafts != undefined) {
             const parsedAircrafts = JSON.parse(aircrafts);
             setFileData(parsedAircrafts);
-            /* const parsedAircrafts = aircrafts;
-            setFileData(parsedAircrafts);*/
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
               aircraft.route.forEach((position: { timeOfDay: string; }) => {
@@ -168,8 +172,13 @@ const MapComponent: React.FC = () => {
               return times;
             }, [] as number[]);
 
-            const earliest = Math.min(...allTimes);
-            const latest = Math.max(...allTimes);
+            let earliest = Infinity;
+            let latest = -Infinity;
+
+            allTimes.forEach((time: number) => {
+              if (time < earliest) earliest = time;
+              if (time > latest) latest = time;
+            });
 
             setEarliestTime(earliest);
             setLatestTime(latest);
@@ -487,8 +496,8 @@ const MapComponent: React.FC = () => {
                 <h2>Flight Details</h2>
                 <div>
                     <p><strong>Aicraft ID:</strong> {selectedAircraft.aircraftIdentification}</p>
-                    <p><strong>Flight Level:</strong> {selectedAircraft.flightLevel.toString()} feets</p>
-                    <p><strong>IAS:</strong> {selectedAircraft.IAS.toString()} km/h</p>
+                    <p><strong>Flight Level:</strong> {selectedAircraft.flightLevel.toString()} FL</p>
+                    <p><strong>IAS:</strong> {selectedAircraft.IAS.toString()} kts</p>
                 </div>
             </div>
         </div>

@@ -14,10 +14,6 @@ export class Aircraft {
         this.TYP=TYP;
         this.isClicked=false;
     }
-
-    /*addRouteElement(newRoute: RouteCoordinates) {
-        this.route.push(newRoute);
-    }*/
 }
 
 export interface RouteCoordinates {
