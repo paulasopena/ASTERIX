@@ -53,7 +53,45 @@ const MapComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const openFile = () => {
-    setIsModalOpen(!isModalOpen);
+    setIsModalOpen(true);
+  };
+
+  const closePicker = () => {
+    setIsModalOpen(false);
+    const fetchData = async () => {
+      try {
+        const filePathCSV = localStorage.getItem('nombreArchivo');
+        if (filePathCSV) {
+          const filePath = filePathCSV.replace('.ast', '.csv');
+          const aircrafts =await getAircrafts(filePath);
+          if (aircrafts != undefined) {
+            const parsedAircrafts = JSON.parse(aircrafts);
+            setFileData(parsedAircrafts);
+
+            const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
+              aircraft.route.forEach((position: { timeOfDay: string; }) => {
+                const timeInSeconds = convertTimeToSeconds(position.timeOfDay);
+                times.push(timeInSeconds);
+              });
+              return times;
+            }, [] as number[]);
+
+            const earliest = Math.min(...allTimes);
+            const latest = Math.max(...allTimes);
+
+            setEarliestTime(earliest);
+            setLatestTime(latest);
+            setCurrentTime(earliest);
+            
+          }
+        }        
+        
+      } catch (error) {
+        console.error('Error fetching file data:', error);
+      }
+    };
+
+    fetchData();
   };
 
   const seeTableDecoder = () => {
@@ -305,24 +343,21 @@ const MapComponent: React.FC = () => {
       encoding: "UTF-8",
     }).ele("kml", { xmlns: "http://www.opengis.net/kml/2.2" });
     const document = root.ele("Document");
-
-    
+  
     fileData.forEach((flight) => {
       const placemark = document.ele("Placemark");
-      const nameNode: XMLBuilder = placemark.ele("name");
+      const nameNode = placemark.ele("name");
       nameNode.txt(`Aircraft Identification: ${flight.aircraftIdentification}`);
-      const descriptionNode: XMLBuilder = placemark.ele("description");
+      const descriptionNode = placemark.ele("description");
       descriptionNode.txt(`IAS: ${flight.IAS}, Flight Level: ${flight.flightLevel}, TYP: ${flight.TYP}`);
-    
-      flight.route.forEach((point) => {
-        const placePoint = placemark.ele("Point");
-        placePoint.ele("coordinates").txt(`${point.lng},${point.lat},${point.height}`);
-      });
   
-
+      const lineString = placemark.ele("LineString");
+      const coordinates = flight.route.map((point) => `${point.lng},${point.lat},${point.height}`).join(" ");
+      lineString.ele("coordinates").txt(coordinates);
     });
+  
     const kmlContent = root.end({ prettyPrint: true });
-
+  
     const blob = new Blob([kmlContent], { type: "application/xml;charset=utf-8" });
     saveAs(blob, "flight_data.kml");
   }
@@ -348,7 +383,7 @@ const MapComponent: React.FC = () => {
           <div className="modal">
             <div className="modal-content">
               <span className="close" onClick={openFile}>&times;</span>
-              <Picker onClose={openFile}/>
+              <Picker onClose={closePicker}/>
             </div>
           </div>
         )}

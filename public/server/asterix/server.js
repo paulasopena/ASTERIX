@@ -41,7 +41,7 @@ app.get("/readFile/:filePath", async (req, res) => {
     } catch (error) {
       const e = error
       if (e.code === "ENOENT") {
-        console.log("El archivo CSV no existe, creándolo...")
+        console.log("El archivo CSV no existe, creandolo...")
         const dir = path.dirname(filePathCSV)
         await mkdir(dir, { recursive: true })
       } else {
