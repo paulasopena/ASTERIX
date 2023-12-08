@@ -23,6 +23,8 @@ In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript
 
 This section is clearly divide it into two parts:
 ### CLASSES AND OBJECTS USED
+#### CAT048
+This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
 ```Javascript
 class CAT048 {
   constructor(messages) {
@@ -104,6 +106,7 @@ class CAT048 {
     }
   }
 ````
+####
 ### FLOW STRUCTURE
 ## HOW TO MAKE IT WORK
 
