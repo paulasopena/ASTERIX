@@ -114,7 +114,7 @@ class CAT048 {
 This class is used in order to select only the information of interest extracted from the previous class once the data has been decoded. 
 <details>
   <summary>AIRCRAFT CLASS CODE</summary>
-````Javascript
+```Javascript
 class Aircraft {
     constructor(aircraftIdentification, IAS, flightLevel, route, TYP) {
       this.aircraftIdentification = aircraftIdentification
