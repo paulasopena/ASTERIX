@@ -8,6 +8,10 @@ ASTERIX categorizes its information into different categories based on the excha
 
 This software provides a glimpse into the tools that air traffic controllers use to assist them in maintaining the minimum separation between aircraft. Precision is crucial for both airborne and ground operations.
 
+
+<img src="https://github.com/paulasopena/ASTERIX/assets/91852254/4f5e5f1c-4300-44eb-97ca-584fc09b457e" alt="Image" width="700" align="center">
+
+
 ## 🔸 TECHNOLOGY CHOSEN 🔸
 
 The ASTERIX codec has been developed with a combination of technologies. 
@@ -727,26 +731,22 @@ async decodeMessages() {
       j += 1
     }
   }
-
-  async setDataSourceIdentifier(buffer) {
-    var SAC = buffer[0]
-    var SIC = buffer[1]
-
-    this.dataSourceIdentifier.SAC = parseInt(
-      SAC.toString(2).padStart(8, "0"),
-      2
-    )
-    this.dataSourceIdentifier.SIC = parseInt(
-      SIC.toString(2).padStart(8, "0"),
-      2
-    )
-  }
 ````
   
 </details>
 
 ## 🔸 HOW TO MAKE IT WORK 🔸
-Videos that explain the software demo.
+
+The code has **four main functions**:
+
+1. Read and decode the binary data into CAT048 information.
+2. Export the decoded data to a CSV file.
+3. Generate a KML file that can be imported into Google Earth with relevant information.
+4. Display the information in a user-friendly and paginated table.
+  
+![image](https://github.com/paulasopena/ASTERIX/assets/91852254/5a0585ea-d2c6-456e-8d31-6ebbd4a858b9)
+
+
 ## 🔸GANTT DIAGRAM AND PROJECT DEVELOPMENT 🔸
 
 In order to summarize the development progress contributed by the three main contributors, a Gantt diagram has been created.
