@@ -22,7 +22,7 @@ In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript
 ## 🔸 STRUCTURE OF THE CODE 🔸
 
 This section is clearly divide it into two parts:
-### CLASSES AND OBJECTS USED
+### 🔹 CLASSES AND OBJECTS USED
 #### CAT048
 This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
 <details>
@@ -177,7 +177,7 @@ class File {
 ````
 </details>
 
-### FLOW STRUCTURE
+### 🔹 FLOW STRUCTURE
 
 As mentioned in the technology section, the project follows a client-server structure. In essence, the client initiates an HTTP POST REQUEST to send a file for decoding, and the server undertakes the decoding process. Upon decoding, a CSV file containing the decoded information is generated and stored in a designated location within the project. This approach is adopted due to the decoded CSV's considerable size, surpassing the constraints of a typical HTTP REQUEST.
 
