@@ -13,6 +13,17 @@ import Picker from './PickerScreen';
 import airplaneIcon from '../../images/airplane.png';
 import airplaneIcon2 from '../../images/airplane_pink.png';
 import { IconLayer } from '@deck.gl/layers/typed';
+import Button from '@material-ui/core/Button';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import { makeStyles } from '@material-ui/core/styles';
+import PlayArrow from '@material-ui/icons/PlayArrow';
+import IconButton from '@material-ui/core/IconButton';
+import SaveIcon from '@material-ui/icons/Save';
+import StopIcon from '@material-ui/icons/Stop';
+import FastForward from '@material-ui/icons/FastForward';
+import Information from '@material-ui/icons/InfoRounded';
+import PublicIcon from '@material-ui/icons/Public';
+import { Public } from '@material-ui/icons';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
@@ -387,7 +398,14 @@ const MapComponent: React.FC = () => {
     const blob = new Blob([kmlContent], { type: "application/xml;charset=utf-8" });
     saveAs(blob, "flight_data.kml");
   }
-
+  const useStyles = makeStyles((theme) => ({
+    button: {
+      margin: theme.spacing(1),
+      width: '100px',
+      height: '70px'
+    },
+  }));
+  const classes = useStyles();
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden'}}>
        <div style={{ flex: 1, position: 'relative'}}>
@@ -401,10 +419,16 @@ const MapComponent: React.FC = () => {
             </DeckGL>
           </div>
       </div>
-      <div style={{ width: '75px', padding: '16px', backgroundColor: '#f4f4f4', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={openFile}>
-          <FolderOpenOutline color={'#333'} title={'Open file'} height="50px" width="50px" />
-        </button>
+      <div style={{ width: '120px', padding: '16px', backgroundColor: '#f4f4f4', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+        <Button
+          variant="contained"
+          color="default"
+          className={classes.button}
+          startIcon={<CloudUploadIcon />}
+          onClick={openFile}
+        >
+          Upload
+        </Button>
         {isModalOpen && (
           <div className="modal">
             <div className="modal-content">
@@ -413,39 +437,58 @@ const MapComponent: React.FC = () => {
             </div>
           </div>
         )}
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={() => downloadFile()}>
-          <FileTrayOutline color={'#333'} title={'Export to CSV'} height="50px" width="50px" />
-        </button>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={() => generateKML()}>
-          <DownloadOutline color={'#333'} title={'Export to KML'} height="50px" width="50px" />
-        </button>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={seeTableDecoder}>
-          <TabletLandscapeOutline color={'#333'} title={'Open the table'} height="50px" width="50px" />
-        </button>
+        <Button
+          variant="contained"
+          color="default"
+          className={classes.button}
+          startIcon={<SaveIcon />}
+          onClick={downloadFile}
+        >
+          CSV
+        </Button>
+        <Button
+          variant="contained"
+          color="default"
+          className={classes.button}
+          startIcon={<PublicIcon />}
+          onClick={generateKML}
+        >
+          KML
+        </Button>
+        <Button
+          variant="contained"
+          color="default"
+          className={classes.button}
+          startIcon={<Information />}
+          onClick={seeTableDecoder}
+        >
+          TABLE
+        </Button>
       </div>
         
      
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#f4f4f4', padding: '7px', position: 'fixed', bottom: 0, width: '100%', height: '5%' }}>
       <div style={{ marginRight: '10px' }}>{displayCurrentTime}</div>
       <input
-          type="range"
-          min={earliestTime}
-          max={latestTime}
-          value={currentTime}
-          onChange={handleTimelineChange}
-          step={1}
-          style={{ width: '70%' , backgroundColor: '#ff90d6'}}
+            type="range"
+            min={earliestTime}
+            max={latestTime}
+            value={currentTime}
+            onChange={handleTimelineChange}
+            step={1}
+            style={{ width: '70%', backgroundColor: '#ff90d6', outline: 'none' }}
         />
         <div style={{ marginRight: '10px' }}>{displayLastestTime}</div>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={startSimulation}>
-          <PlayOutline color={'#333'} title={'Play simulation'} height="25px" width="25px" />
-        </button>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={stopSimulation}>
-          <StopSharp color={'#333'} title={'Stop simulation'} height="25px" width="25px" />
-        </button>
-        <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={changeSpeed}>
-          <FlashOutline color={buttonColor} title={'Fast-forward simulation'} height="25px" width="25px" />
-        </button>
+        <IconButton aria-label="play" onClick={startSimulation}>
+          <PlayArrow />
+        </IconButton>
+        <IconButton aria-label="stop" onClick={stopSimulation}>
+          <StopIcon/>
+        </IconButton>
+        <IconButton aria-label="fast" onClick={changeSpeed}>
+          <FastForward />
+        </IconButton>
+        
       </div>
       {selectedAircraft && (
         <div style={{ position: 'fixed', left: 0, top: 0, padding: '10px', background: '#f4f4f4', border: '1px solid #ccc' }}>
