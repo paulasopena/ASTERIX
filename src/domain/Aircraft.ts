@@ -4,6 +4,7 @@ export class Aircraft {
     flightLevel: Number;
     route: [RouteCoordinates];
     TYP: string;
+    isClicked: boolean;
 
     constructor(aircraftIdentification: string, IAS: Number, flightLevel: Number, route: [RouteCoordinates], TYP: string) {
         this.aircraftIdentification = aircraftIdentification;
@@ -11,11 +12,12 @@ export class Aircraft {
         this.flightLevel = flightLevel;
         this.route = route; 
         this.TYP=TYP;
+        this.isClicked=false;
     }
 
-    addRouteElement(newRoute: RouteCoordinates) {
+    /*addRouteElement(newRoute: RouteCoordinates) {
         this.route.push(newRoute);
-    }
+    }*/
 }
 
 export interface RouteCoordinates {
