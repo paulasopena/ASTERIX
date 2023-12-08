@@ -27,7 +27,7 @@ This section is clearly divide it into two parts:
 This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
 <details>
   <summary>CAT048 CLASS CODE</summary>
-  ```Javascript
+  ```javascript
 class CAT048 {
   constructor(messages) {
     this.messages = messages
@@ -107,14 +107,14 @@ class CAT048 {
       targetAltSource: ""
     }
   }
-````
+```
 </details>
 
 #### AIRCRAFT
 This class is used in order to select only the information of interest extracted from the previous class once the data has been decoded. 
 <details>
   <summary>AIRCRAFT CLASS CODE</summary>
-```Javascript
+\```javascript
 class Aircraft {
     constructor(aircraftIdentification, IAS, flightLevel, route, TYP) {
       this.aircraftIdentification = aircraftIdentification
@@ -128,7 +128,7 @@ class Aircraft {
       this.route.push(newRoute)
     }
   }
-````
+\```
 </details>
 ### FLOW STRUCTURE
 ## HOW TO MAKE IT WORK
