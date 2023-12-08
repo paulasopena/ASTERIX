@@ -23,8 +23,6 @@ In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript
 <img src="https://github.com/paulasopena/ASTERIX/assets/91852254/505802ce-aa5d-4415-b2e4-d5ae9e2a0ba1" alt="logo512" width="100"> <img src="https://github.com/paulasopena/ASTERIX/assets/91852254/4068cbb2-e449-45a4-ae48-9d584ea5fe79" alt="Electron Logo" width="100"> 
 
 
-
-
 ### 🔹 LIBRARIES
 Regarding the libraries used, we want to highlight the one utilized for the map:
 * We have chosen to employ Deck.gl, a library that provides us with a 3D map in various styles.
@@ -194,6 +192,558 @@ As mentioned in the technology section, the project follows a client-server stru
 Subsequently, when the simulation phase commences, another HTTP request is sent to the server. In response, the server provides a list of Aircrafts along with their respective routes. This crucial data enables the client to simulate trajectories effectively.
 
 ![Diagrama sin título drawio (1)](https://github.com/paulasopena/ASTERIX/assets/91852254/7cf31482-19a2-4dec-99a2-44a250493186)
+
+#### ▫️ MAIN DECODER FUNCTION
+<details>
+  <summary><strong>decodeMessages()</strong></summary>
+
+```Javascript
+async decodeMessages() {
+    const length = this.messages.readUInt16BE(1) // Comencem a llegir 16 desde la posició 1 (ens saltem la CAT)
+    const realLength = this.messages.length
+    assert.strictEqual(length, realLength, "Length mismatch.")
+
+    var i = 0
+    var moreFSPEC = true
+
+    var numFSPEC = 0
+
+    while (i <= 4) {
+      // Analitzem el FSPEC
+      if (moreFSPEC) {
+        var currentByte = this.messages.readUInt8(i + 3)
+        const binaryArray = currentByte
+          .toString(2)
+          .padStart(8, "0")
+          .split("")
+          .reverse() // [7,6,5,4,3,2,1,0]
+
+        if (binaryArray[0] === "1") {
+          numFSPEC += 1
+        } else {
+          numFSPEC += 1 // Aquí també per saber quants 'blocs' de data items també, el últim FSPEC será false però tindrem 3 blocs (bytes)
+          moreFSPEC = false
+        }
+      }
+      i = i + 1
+    }
+
+    var j = 0
+    var counter = 3
+
+    while (j < numFSPEC) {
+      var currentByte = this.messages.readUInt8(j + 3)
+      const binaryArray = currentByte
+        .toString(2)
+        .padStart(8, "0")
+        .split("")
+        .reverse() // [7,6,5,4,3,2,1,0]
+
+      switch (j) {
+        case 0:
+          /*  
+                        Data Item I048/010, Data Source Identifier
+                        Definition: Identification of the radar station from which the data is received.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[7] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setDataSourceIdentifier(parameter)
+            counter = counter + 2
+          } else {
+            console.log("Data Source Identifier: null")
+          }
+
+          /*  
+                        Data Item I048/140, Time of Day
+                        Definition: Absolute time stamping expressed as Co-ordinated Universal Time (UTC).
+                        Format: Three-octet fixed length Data Item. 
+                    */
+          if (binaryArray[6] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 3
+            )
+            this.setTimeOfDay(parameter)
+            counter = counter + 3
+          } else {
+            console.log("Time of Day: null")
+          }
+
+          /*
+                        Data Item I048/020, Target Report Descriptor
+                        Definition: Type and properties of the target report.
+                        Format: Variable length Data Item comprising a first part of one-octet, followed by one-octet extents 
+                        as necessary.
+                    */
+          if (binaryArray[5] === "1") {
+            var numTarget = 0
+            var moreTarget = true
+            var i = 0
+
+            while (i <= 3) {
+              if (moreTarget) {
+                var octet1 = this.messages
+                  .readUInt8(numFSPEC + counter + i)
+                  .toString(2)
+                  .padStart(8, "0")
+                  .split("")
+                if (octet1[7] === "1") {
+                  numTarget += 1
+                } else {
+                  numTarget += 1
+                  moreTarget = false
+                }
+              }
+              i = i + 1
+            }
+
+            var parameter
+
+            if (numTarget == 1) {
+              parameter = this.messages.subarray(
+                numFSPEC + counter,
+                numFSPEC + counter + 1
+              )
+              counter = counter + 1
+            } else if (numTarget == 2) {
+              parameter = this.messages.subarray(
+                numFSPEC + counter,
+                numFSPEC + counter + 2
+              )
+              counter = counter + 2
+            } else {
+              parameter = this.messages.subarray(
+                numFSPEC + counter,
+                numFSPEC + counter + 3
+              )
+              counter = counter + 3
+            }
+
+            this.setTargetReportDescriptor(parameter, numTarget)
+          } else {
+            console.log("Target Report Descriptor: null")
+          }
+
+          /*
+                        Data Item I048/040, Measured Position in Polar Co-ordinates
+                        Definition: Measured position of an aircraft in local polar co-ordinates.
+                        Format: Four-octet fixed length Data Item.
+                    */
+          if (binaryArray[4] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 4
+            )
+            this.setMeasuredPositionPolarCoordinates(parameter)
+            counter = counter + 4
+          }
+
+          /*
+                        Data Item I048/070, Mode-3/A Code in Octal Representation
+                        Definition: Mode-3/A code converted into octal representation.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[3] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setMode3ACodeOctalRepresentation(parameter)
+            counter = counter + 2
+          }
+
+          /*
+                        Data Item I048/090, Flight Level in Binary Representation
+                        Definition: Flight Level converted into binary representation.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[2] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setFlightLevelBinaryRepresentation(parameter)
+            counter = counter + 2
+          }
+
+          /*
+                        Data Item I048/130, Radar Plot Characteristics
+                        Definition: Additional information on the quality of the target report.
+                        Format: Compound Data Item.
+                    */
+          if (binaryArray[1] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 1
+            )
+            var octet = parameter[0].toString(2).padStart(8, "0")
+
+            var subfieldCounter = 0
+
+            if (octet[0] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var srl = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(srl, 0)
+              subfieldCounter += 1
+            }
+            if (octet[1] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var srr = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(srr, 1)
+              subfieldCounter += 1
+            }
+            if (octet[2] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var sam = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(sam, 2)
+              subfieldCounter += 1
+            }
+            if (octet[3] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var prl = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(prl, 3)
+              subfieldCounter += 1
+            }
+            if (octet[4] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var pam = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(pam, 4)
+              subfieldCounter += 1
+            }
+            if (octet[5] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var rpd = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(rpd, 5)
+              subfieldCounter += 1
+            }
+            if (octet[6] === "1") {
+              var parameter = this.messages.subarray(
+                numFSPEC + counter + subfieldCounter + 1,
+                numFSPEC + counter + subfieldCounter + 2
+              )
+              var apd = parameter[0].toString(2).padStart(8, "0")
+              this.setRadarPlotCharacteristics(apd, 6)
+              subfieldCounter += 1
+            }
+            if (octet[7] === "1") {
+              //End of primary subfield
+            }
+
+            var subfieldLength = subfieldCounter + 1
+            counter = counter + subfieldLength
+          }
+          break
+        case 1:
+          /*
+                        Data Item I048/220, Aircraft Address
+                        Definition: Aircraft address (24-bits Mode S address) assigned uniquely to each aircraft.
+                        Format: Three-octet fixed length Data Item.
+                    */
+          if (binaryArray[7] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 3
+            )
+            this.setAircraftAddress(parameter)
+            counter = counter + 3
+          }
+
+          /*
+                        Data Item I048/240, Aircraft Identification
+                        Definition: Aircraft identification (in 8 characters) obtained from an aircraft equipped with a 
+                        Mode S transponder.
+                        Format: Six-octet fixed length Data Item.
+                    */
+          if (binaryArray[6] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 6
+            )
+            this.setAircraftIdentification(parameter)
+            counter = counter + 6
+          }
+
+          /*
+                        Data Item I048/250, BDS Register Data
+                        Definition: BDS Register Data as extracted from the aircraft transponder.
+                        Format: Repetitive Data Item starting with a one-octet Field Repetition Indicator (REP) followed 
+                        by at least one BDS Register comprising one seven octet BDS Register Data and one octet BDS Register 
+                        code.
+                    */
+          if (binaryArray[5] === "1") {
+            var parameterRepetition = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 1
+            )
+            const bitsRepetition = parameterRepetition[0]
+              .toString(2)
+              .padStart(8, "0")
+            const numberBDS = parseInt(bitsRepetition, 2)
+            counter = counter + 1
+            let byteBDS = counter
+            for (let i = 0; i < numberBDS; i += 1) {
+              var parameterBDSData = this.messages.subarray(
+                numFSPEC + byteBDS,
+                numFSPEC + byteBDS + 8
+              )
+              const bitsBDSData = parameterBDSData[0]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData2 = parameterBDSData[1]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData3 = parameterBDSData[2]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData4 = parameterBDSData[3]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData5 = parameterBDSData[4]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData6 = parameterBDSData[5]
+                .toString(2)
+                .padStart(8, "0")
+              const bitsBDSData7 = parameterBDSData[6]
+                .toString(2)
+                .padStart(8, "0")
+              const chainBitsDataBDS =
+                bitsBDSData +
+                bitsBDSData2 +
+                bitsBDSData3 +
+                bitsBDSData4 +
+                bitsBDSData5 +
+                bitsBDSData6 +
+                bitsBDSData7
+              var parameterBDSRegister = this.messages.subarray(
+                numFSPEC + byteBDS + 7,
+                numFSPEC + byteBDS + 8
+              )
+              this.setModeBDS(parameterBDSRegister, chainBitsDataBDS)
+              byteBDS = byteBDS + 8
+            }
+
+            counter = counter + numberBDS * 8
+          }
+
+          /*
+                        Data Item I048/161, Track Number
+                        Definition: An integer value representing a unique reference to a track record within a particular 
+                        track file.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[4] === "1") {
+            var parameterTrackNumber = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setTrackNumber(parameterTrackNumber)
+            counter = counter + 2
+          }
+
+          /*
+                        Data Item I048/042, Calculated Position in Cartesian Co-ordinates
+                        Definition: Calculated position of an aircraft in Cartesian co-ordinates.
+                        Format: Four-octet fixed length Data Item in Two’s Complement.
+                    */
+          if (binaryArray[3] === "1") {
+            var parameterCartesianCoordinates = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 4
+            )
+            this.setCalculatedPositionCartesianCoordinates(
+              parameterCartesianCoordinates
+            )
+            counter = counter + 4
+          }
+
+          /*
+                        Data Item I048/200, Calculated Track Velocity in Polar Co-ordinates
+                        Definition: Calculated track velocity expressed in polar co-ordinates.
+                        Format: Four-octet fixed length Data Item.
+                    */
+          if (binaryArray[2] === "1") {
+            var parameterTrackVelocity = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 4
+            )
+            this.setCalculatedTrackVelocityPolarCoordinates(
+              parameterTrackVelocity
+            )
+            counter = counter + 4
+          }
+
+          /*
+                        Data Item I048/170, Track Status
+                        Definition: Status of monoradar track (PSR and/or SSR updated).
+                        Format: Variable length Data Item comprising a first part of one-octet, followed by one-octet 
+                        extents as necessary.
+                    */
+          if (binaryArray[1] === "1") {
+            var parameterTrackStatus = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 1
+            )
+            this.setTrackStatus(parameterTrackStatus)
+            const firstByteTrackStatus = parameterTrackStatus[0]
+              .toString(2)
+              .padStart(8, "0")
+            const fx = firstByteTrackStatus.split("")
+            counter = counter + 1
+            if (fx[7] === "1") {
+              var parameterTrackStatusSecondByte = this.messages.subarray(
+                numFSPEC + counter + 1,
+                numFSPEC + counter + 2
+              )
+              this.setTrackStatus2(parameterTrackStatusSecondByte)
+              counter = counter + 1
+            }
+          }
+          break
+        case 2:
+          /*
+                        No s'ha d'analitzar (I048/210)
+                        Four-octet fixed length Data Item.
+                    */
+          if (binaryArray[7] === "1") {
+            counter = counter + 4
+          }
+
+          /*
+                        No s'ha d'analitzar (I048/030)
+                        Variable length Data Item comprising a first part of one-octet, followed by one-octet extents as necessary.
+                    */
+          if (binaryArray[6] === "1") {
+            var numTarget = 0
+            var moreTarget = true
+            var i = 0
+
+            while (moreTarget) {
+              var octet1 = this.messages
+                .readUInt8(numFSPEC + counter + i)
+                .toString(2)
+                .padStart(8, "0")
+                .split("")
+              if (octet1[7] === "1") {
+                numTarget += 1
+              } else {
+                numTarget += 1
+                moreTarget = false
+              }
+              i = i + 1
+            }
+
+            counter = counter + numTarget
+          }
+
+          /*
+                        No s'ha d'analitzar (I048/080)
+                        Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[5] === "1") {
+            counter = counter + 2
+          }
+
+          /*
+                        No s'ha d'analitzar (I048/100)
+                        Four-octet fixed length Data Item.
+                    */
+          if (binaryArray[4] === "1") {
+            counter = counter + 4
+          }
+
+          /*
+                        Data Item I048/110, Height Measured by a 3D Radar
+                        Definition: Height of a target as measured by a 3D radar. The height shall use mean sea level as the 
+                        zero reference level.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[3] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setHeightMeasuredBy3DRadar(parameter)
+            counter = counter + 2
+          }
+
+          /*
+                        No s'ha d'analitzar (I048/120)
+                        Compound Data Item, comprising a primary subfield of one octet, followed by one of the two defined subfields.
+                    */
+          if (binaryArray[2] === "1") {
+            var octet1 = this.messages
+              .readUInt8(numFSPEC + counter)
+              .toString(2)
+              .padStart(8, "0")
+              .split("")
+            if (octet1[0] === "1") {
+              counter = counter + 3
+            } else if (octet1[1] === "1") {
+              counter = counter + 8
+            }
+          }
+
+          /*
+                        Data Item I048/230, Communications/ACAS Capability and Flight Status
+                        Definition: Communications capability of the transponder, capability of the on-board ACAS equipment 
+                        and flight status.
+                        Format: Two-octet fixed length Data Item.
+                    */
+          if (binaryArray[1] === "1") {
+            var parameter = this.messages.subarray(
+              numFSPEC + counter,
+              numFSPEC + counter + 2
+            )
+            this.setCommunicationsACASCapabilityFlightStatus(parameter)
+            counter = counter + 2
+          }
+          break
+      }
+      this.setModeCCorrected()
+      this.setLatitudeLongitude()
+      j += 1
+    }
+  }
+
+  async setDataSourceIdentifier(buffer) {
+    var SAC = buffer[0]
+    var SIC = buffer[1]
+
+    this.dataSourceIdentifier.SAC = parseInt(
+      SAC.toString(2).padStart(8, "0"),
+      2
+    )
+    this.dataSourceIdentifier.SIC = parseInt(
+      SIC.toString(2).padStart(8, "0"),
+      2
+    )
+  }
+````
+  
+</details>
 
 ## 🔸 HOW TO MAKE IT WORK 🔸
 Videos that explain the software demo.
