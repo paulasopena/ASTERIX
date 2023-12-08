@@ -1,0 +1,45 @@
+.main-container-general{
+    align-items: center;
+    justify-content: center;
+}
+.main-container{
+    align-items: center; 
+}
+
+.charge-gif{
+    margin-top: 5%;
+    width:10%;
+}
+.logo {
+    margin-top: 10%;
+    width: 20%;
+}
+.line-splash{
+    margin-top: 5%;
+}
+.line-splash-bottom{
+    margin-top: 20%;
+}
+.microsoft-button{
+    margin-top: 5%;
+    font-family: 'Open Sans', sans-serif;
+    background-color: black;
+    color: white;
+    font-size: 100%;
+    height: 70px;
+    width: 170px;
+}
+.microsoft-button:hover{
+    margin-top: 5%;
+    font-family: 'Open Sans', sans-serif;
+    background-color: white;
+    color: black;
+    font-size: 100%;
+    height: 70px;
+    width: 170px;
+}
+.heading-contact{
+    margin-top: 3%;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 40px;
+}

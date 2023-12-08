@@ -90,18 +90,18 @@ const Home2 = () => {
 
   return (
     <div>
-      <button onClick={() => navigation('/')} style={{ color: 'white', display: 'flex', alignItems: 'center' }}>
+      <button onClick={() => navigation('/map')} style={{ color: 'white', display: 'flex', alignItems: 'center' }}>
         <ArrowBackIcon />
       </button>
       {isLoading ? (
         <p>Cargando ...</p>
       ) : (
-      <table {...getTableProps()} style={{ border: 'solid 1px blue' }}>
+      <table {...getTableProps()} style={{ border: 'solid 0px white' }}>
         <thead>
           {headerGroups.map((headerGroup: { getHeaderGroupProps: () => JSX.IntrinsicAttributes & React.ClassAttributes<HTMLTableRowElement> & React.HTMLAttributes<HTMLTableRowElement>; headers: any[]; }) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()} style={{ borderBottom: 'solid 3px red' }}>
+                <th {...column.getHeaderProps()} style={{ border: 'solid 0px white' }}>
                   {column.render('Header')}
                 </th>
               ))}
