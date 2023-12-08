@@ -142,15 +142,13 @@ Subsequently, when the simulation phase commences, another HTTP request is sent 
 ![Diagrama sin título drawio (1)](https://github.com/paulasopena/ASTERIX/assets/91852254/7cf31482-19a2-4dec-99a2-44a250493186)
 
 ## HOW TO MAKE IT WORK
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
+Videos that explain the software demo.
 ## GANTT DIAGRAM AND PROJECT DEVELOPMENT
 
 In order to summarize the development progress contributed by the three main contributors, a Gantt diagram has been created.
 
+![image](https://github.com/paulasopena/ASTERIX/assets/91852254/ea64e0e1-79ed-4463-819c-d565444c29f7)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+
+
 
