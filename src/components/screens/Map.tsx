@@ -12,6 +12,25 @@ import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
 import Picker from './PickerScreen';
 import airplaneIcon from '../../images/airplane.png';
 import airplaneIcon2 from '../../images/airplane_pink.png';
+import airplane1 from '../../images/1.jpg';
+import airplane2 from '../../images/2.jpg';
+import airplane3 from '../../images/3.jpg';
+import airplane4 from '../../images/4.jpg';
+import airplane5 from '../../images/5.jpg';
+import airplane6 from '../../images/6.jpg';
+import airplane7 from '../../images/8.jpg';
+import airplane9 from '../../images/9.jpg';
+import airplane10 from '../../images/10.jpg';
+import airplane11 from '../../images/11.jpg';
+import airplane12 from '../../images/12.jpg';
+import airplane13 from '../../images/13.jpg';
+import airplane14 from '../../images/14.jpg';
+import airplane15 from '../../images/15.jpg';
+import airplane16 from '../../images/16.jpg';
+import airplane17 from '../../images/17.jpg';
+import airplane18 from '../../images/18.jpg';
+import airplane19 from '../../images/19.jpg';
+import airplane20 from '../../images/20.jpg';
 import { IconLayer } from '@deck.gl/layers/typed';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
@@ -24,6 +43,13 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
   pitch: 30
 }
+
+const airplaneImages = [
+  airplane1, airplane2, airplane3, airplane4, airplane5,
+  airplane6, airplane7, airplane9, airplane10, airplane11,
+  airplane12, airplane13, airplane14, airplane15, airplane16,
+  airplane17, airplane18, airplane19, airplane20
+];
 
 const findClosestPosition = (positions: RouteCoordinates[], targetTime: number): RouteCoordinates | null => {
   let closestPosition = null;
@@ -53,7 +79,7 @@ const MapComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const openFile = () => {
-    setIsModalOpen(true);
+    setIsModalOpen(!isModalOpen);
   };
 
   const closePicker = () => {
@@ -78,8 +104,14 @@ const MapComponent: React.FC = () => {
               return times;
             }, [] as number[]);
 
-            const earliest = Math.min(...allTimes);
-            const latest = Math.max(...allTimes);
+            let earliest = Infinity;
+            let latest = -Infinity;
+
+            allTimes.forEach((time: number) => {
+              if (time < earliest) earliest = time;
+              if (time > latest) latest = time;
+            });
+
 
             setEarliestTime(earliest);
             setLatestTime(latest);
@@ -113,6 +145,13 @@ const MapComponent: React.FC = () => {
   const [buttonColor, setButtonColor] = useState<string>('#333');
   const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
 
+  const [selectedImage, setSelectedImage] = useState('');
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * airplaneImages.length);
+    setSelectedImage(airplaneImages[randomIndex]);
+  }, [selectedAircraft]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,8 +163,6 @@ const MapComponent: React.FC = () => {
           if (aircrafts != undefined) {
             const parsedAircrafts = JSON.parse(aircrafts);
             setFileData(parsedAircrafts);
-            /* const parsedAircrafts = aircrafts;
-            setFileData(parsedAircrafts);*/
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
               aircraft.route.forEach((position: { timeOfDay: string; }) => {
@@ -135,8 +172,13 @@ const MapComponent: React.FC = () => {
               return times;
             }, [] as number[]);
 
-            const earliest = Math.min(...allTimes);
-            const latest = Math.max(...allTimes);
+            let earliest = Infinity;
+            let latest = -Infinity;
+
+            allTimes.forEach((time: number) => {
+              if (time < earliest) earliest = time;
+              if (time > latest) latest = time;
+            });
 
             setEarliestTime(earliest);
             setLatestTime(latest);
@@ -449,7 +491,15 @@ const MapComponent: React.FC = () => {
       </div>
       {selectedAircraft && (
         <div style={{ position: 'fixed', left: 0, top: 0, padding: '10px', background: '#f4f4f4', border: '1px solid #ccc' }}>
-        <h3>{selectedAircraft.aircraftIdentification}</h3>
+            <div>
+                {selectedImage && <img src={selectedImage} alt="Airplane" style={{ width: '200px', height: '200px'}}/>}
+                <h2>Flight Details</h2>
+                <div>
+                    <p><strong>Aicraft ID:</strong> {selectedAircraft.aircraftIdentification}</p>
+                    <p><strong>Flight Level:</strong> {selectedAircraft.flightLevel.toString()} FL</p>
+                    <p><strong>IAS:</strong> {selectedAircraft.IAS.toString()} kts</p>
+                </div>
+            </div>
         </div>
       )}
 
