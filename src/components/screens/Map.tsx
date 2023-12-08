@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline, PlayOutline, StopSharp, FlashOutline} from 'react-ionicons';
 import { useNavigate } from 'react-router-dom';
-import { fetchBytes, getAircrafts } from "../../asterix/file_manager";
+import { getAircrafts } from "../../asterix/file_manager";
 import { Map } from 'react-map-gl';
 import DeckGL from '@deck.gl/react/typed';
 import {GeoJsonLayer} from '@deck.gl/layers/typed';
 import {create} from 'xmlbuilder2';
 import {saveAs} from 'file-saver';
-import {XMLBuilder} from 'xmlbuilder2/lib/interfaces';
 import './HomeStyle.css';
 import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
 import Picker from './PickerScreen';
 import airplaneIcon from '../../images/airplane.png';
+import airplaneIcon2 from '../../images/airplane_pink.png';
 import { IconLayer } from '@deck.gl/layers/typed';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
@@ -67,6 +67,8 @@ const MapComponent: React.FC = () => {
           if (aircrafts != undefined) {
             const parsedAircrafts = JSON.parse(aircrafts);
             setFileData(parsedAircrafts);
+            /*const parsedAircrafts = aircrafts;
+            setFileData(parsedAircrafts);*/
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
               aircraft.route.forEach((position: { timeOfDay: string; }) => {
@@ -100,6 +102,7 @@ const MapComponent: React.FC = () => {
 
   const [fileData, setFileData] = useState<Aircraft[]>([]);
   const [layerTrayectories, setLayerTrayectories] = useState<any>();
+  const [layerIcon, setLayerIcon] = useState<any>();
   const [earliestTime, setEarliestTime] = useState<number>(0);
   const [latestTime, setLatestTime] = useState<number>(100);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -121,6 +124,8 @@ const MapComponent: React.FC = () => {
           if (aircrafts != undefined) {
             const parsedAircrafts = JSON.parse(aircrafts);
             setFileData(parsedAircrafts);
+            /* const parsedAircrafts = aircrafts;
+            setFileData(parsedAircrafts);*/
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
               aircraft.route.forEach((position: { timeOfDay: string; }) => {
@@ -197,10 +202,10 @@ const MapComponent: React.FC = () => {
     const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
 
     let angle = Math.atan2(y, x);
-    angle = (angle + 2 * Math.PI) % (2 * Math.PI); // Asegura que el ángulo esté en el rango [0, 2*pi)
+    angle = (angle + 2 * Math.PI) % (2 * Math.PI);
 
     const radToDeg = (radians: number) => radians * (180 / Math.PI);
-    return (radToDeg(angle) + 270) % 360; // Ajusta para que 0 grados sea hacia arriba
+    return (radToDeg(angle) + 270) % 360;
   }
   
 
@@ -216,24 +221,24 @@ const MapComponent: React.FC = () => {
             type: 'Point',
             coordinates: [closestPosition.lng, closestPosition.lat, closestPosition.height]
           },
-          avatar_url: airplaneIcon,
-          nextPosition: [closestPosition2.lng, closestPosition2.lat, closestPosition2.height]
+          isClicked: aircraft.isClicked,
+          nextPosition: [closestPosition2.lng, closestPosition2.lat, closestPosition2.height],
+          aircraftIdentification: aircraft.aircraftIdentification,
         };
       } else {
         return null;
       }
     }).filter(Boolean);
 
-    const layer = new IconLayer({
+    setLayerIcon(new IconLayer({
       id: 'icon-layer',
       data: updatedPointsData,
       getIcon: d => ({
-        url: d.avatar_url,
+        url: d.isClicked ? airplaneIcon2 : airplaneIcon,
         width: 128,
         height: 128,
         anchorY: 128
       }),
-      // icon size is based on data point's contributions, between 2 - 25
       getSize: d => Math.max(2, Math.min(d.contributions / 1000 * 25, 25)),
       pickable: true,
       sizeScale: 15,
@@ -246,12 +251,23 @@ const MapComponent: React.FC = () => {
         return 0;
       },
       onClick: (info) => {
-        const aircraft = fileData[info.index];
+        console.log(info);
+        const aircraft = fileData.find(item => item.aircraftIdentification === info.object.aircraftIdentification);
         if (aircraft) {
           setSelectedAircraft(aircraft);
         }
+      
+        const updatedData = fileData.map(item => {
+          if (item.aircraftIdentification === info.object.aircraftIdentification) {
+            return { ...item, isClicked: true };
+          } else {
+            return { ...item, isClicked: false };
+          }
+        });
+
+        setFileData(updatedData);
       }
-    });
+    }));
 
     const routeLines = fileData.map(aircraft => {
       const TRAIL_LENGTH = 10;
@@ -279,7 +295,7 @@ const MapComponent: React.FC = () => {
       return [currentLine];
     }).flat();
 
-    setLayerTrayectories([layer, new GeoJsonLayer({
+    setLayerTrayectories(new GeoJsonLayer({
       id: 'trayectories',
       data: {
         type: 'FeatureCollection',
@@ -295,9 +311,12 @@ const MapComponent: React.FC = () => {
           return [122, 195, 207, 255];
         }
       },
-      getLineWidth: 128,
+      getLineWidth: f => {
+        return Math.max(2, Math.min(128 / 25, 2));
+      },
+      lineWidthUnits: 'pixels',
       autoHighlight: true,      
-    })]);
+    }));
   };
 
   const changeSpeed = () =>{
@@ -369,7 +388,7 @@ const MapComponent: React.FC = () => {
             <DeckGL
               initialViewState={INITIAL_VIEW_STATE}
               controller={true}
-              layers={layerTrayectories ? [layerTrayectories] : []}
+              layers={layerTrayectories && layerIcon ? [layerTrayectories, layerIcon] : []}
             >
               <Map mapStyle={MAP_STYLE}  mapboxAccessToken={MAP_TOKEN} />
             </DeckGL>
