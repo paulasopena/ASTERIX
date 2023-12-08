@@ -26,8 +26,9 @@ This section is clearly divide it into two parts:
 #### CAT048
 This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
 <details>
-  <summary>CAT048 CLASS CODE</summary>
-  ```javascript
+  <summary><strong>CAT048 CLASS CODE</strong></summary>
+  
+  ```Javascript
 class CAT048 {
   constructor(messages) {
     this.messages = messages
@@ -107,14 +108,15 @@ class CAT048 {
       targetAltSource: ""
     }
   }
-```
+````
 </details>
 
 #### AIRCRAFT
-This class is used in order to select only the information of interest extracted from the previous class once the data has been decoded. 
+This class is used to select only the relevant information from the previous class to display it into the simulation. 
 <details>
-  <summary>AIRCRAFT CLASS CODE</summary>
-\```javascript
+  <summary><strong>AIRCRAFT CLASS CODE</strong></summary>
+  
+  ```Javascript
 class Aircraft {
     constructor(aircraftIdentification, IAS, flightLevel, route, TYP) {
       this.aircraftIdentification = aircraftIdentification
@@ -128,9 +130,15 @@ class Aircraft {
       this.route.push(newRoute)
     }
   }
-\```
+````
 </details>
+
 ### FLOW STRUCTURE
+As it has been commented in the technologies section, the code has a structure of client and server. 
+As an overview, basically the client sends the file to decode through an HTTP POST REQUEST and the server decodes the file, creates a CSV with the decoded information and saves it into a common location in the project due to its large size. This last part has been done this way because the CSV decoded has a larger size than the one an HTTP REQUEST can have. 
+From there, when the simulation has to start, another HTTP request is done to the server which responds with a list of Aircrafts and its routes. This way the trajectories can be simulated in the client.
+
+
 ## HOW TO MAKE IT WORK
 
 Launches the test runner in the interactive watch mode.\
@@ -140,5 +148,4 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
-
 
