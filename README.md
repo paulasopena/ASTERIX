@@ -21,12 +21,90 @@ In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript
 
 ## STRUCTURE OF THE CODE
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
+This section is clearly divide it into two parts:
+### CLASSES AND OBJECTS USED
+```Javascript
+class CAT048 {
+  constructor(messages) {
+    this.messages = messages
+    this.dataSourceIdentifier = { SAC: 0, SIC: 0 }
+    this.targetReportDescriptor = {
+      TYP: "",
+      SIM: "",
+      RDP: "",
+      SPI: "",
+      RAB: ""
+    }
+    this.measuredPositionPolarCoordinates = { rho: 0, theta: 0 }
+    this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 }
+    this.calculatedPositionLLACoordinates = { lat: 0, lng: 0 }
+    this.mode3ACodeOctalRepresentation = { V: "", G: "", L: "", mode3A: "" }
+    this.flightLevelBinaryRepresentation = { V: "", G: "", flightLevel: 0 }
+    this.modeCcorrected = 0
+    this.heightMeasuredBy3DRadar = { Height: 0 }
+    this.radarPlotCharacteristics = {
+      SRL: "",
+      SRR: "",
+      SAM: "",
+      PRL: "",
+      PAM: "",
+      RPD: "",
+      APD: ""
+    }
+    this.timeOfDay = ""
+    this.trackNumber = 0
+    this.trackStatus = { CNF: "", RAD: "", DOU: "", MAH: "", CDM: "" }
+    this.calculatedTrackVelocityPolarCoordinates = { rho: 0, theta: 0 }
+    this.aircraftAddress = ""
+    this.communicationsACASCapabilityFlightStatus = {
+      COM: "",
+      STAT: "",
+      SI: "",
+      MSSC: "",
+      ARC: "",
+      AIC: "",
+      B1A: "",
+      B1B: ""
+    }
+    this.aircraftIdentification = ""
+    this.BDSRegisterData = {
+      modeS: "",
+      RASstatus: 0,
+      RollAngle: 0,
+      TTAstatus: 0,
+      TrueTrackAngle: 0,
+      GSstatus: 0,
+      GroundSpeed: 0,
+      TARstatus: 0,
+      TrackAngleRate: 0,
+      TAstatus: 0,
+      TrueAirspeed: 0,
+      HDGstatus: 0,
+      HDG: 0,
+      IASstatus: 0,
+      IAS: 0,
+      MACHstatus: 0,
+      MACH: 0,
+      BARstatus: 0,
+      BAR: 0,
+      IVVstatus: 0,
+      IVV: 0,
+      MCPstatus: 0, //1
+      MCPaltitude: 0,
+      FMSstatus: 0,
+      FMSaltitude: 0,
+      BPSstatus: 0,
+      BPSpressure: 0,
+      modeStatus: 0,
+      VNAV: 0,
+      ALTHold: 0,
+      approach: 0,
+      targetAltStatus: "",
+      targetAltSource: ""
+    }
+  }
+````
+### FLOW STRUCTURE
 ## HOW TO MAKE IT WORK
 
 Launches the test runner in the interactive watch mode.\
