@@ -1,12 +1,15 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import logo from './logo.svg';
 import './App.css';
 import Home2 from './components/screens/Home2';
 import Picker from './components/screens/PickerScreen';
 import MapComponent from './components/screens/Map';
 
 function App() {
+  useEffect(() => {
+    localStorage.removeItem('nombreArchivo');
+  }, []);
+
   return (
     <div className="App">
       <Routes>
