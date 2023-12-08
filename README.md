@@ -177,7 +177,7 @@ class File {
 ````
 </details>
 
-### 🔸 FLOW STRUCTURE
+### FLOW STRUCTURE
 
 As mentioned in the technology section, the project follows a client-server structure. In essence, the client initiates an HTTP POST REQUEST to send a file for decoding, and the server undertakes the decoding process. Upon decoding, a CSV file containing the decoded information is generated and stored in a designated location within the project. This approach is adopted due to the decoded CSV's considerable size, surpassing the constraints of a typical HTTP REQUEST.
 
