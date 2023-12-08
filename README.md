@@ -23,7 +23,7 @@ In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript
 
 This section is clearly divide it into two parts:
 ### 🔹 CLASSES AND OBJECTS USED
-#### CAT048
+#### ▫️ CAT048
 This class contains all the information that can be provided by the data items. If the data item exists, then its information is fullfilled in this class, in case it does not it is left blank.
 <details>
   <summary><strong>CAT048 CLASS CODE</strong></summary>
@@ -111,7 +111,7 @@ class CAT048 {
 ````
 </details>
 
-#### AIRCRAFT
+#### ▫️ AIRCRAFT
 This class is used to select only the relevant information from the previous class to display it into the simulation. 
 <details>
   <summary><strong>AIRCRAFT CLASS CODE</strong></summary>
@@ -133,7 +133,7 @@ class Aircraft {
 ````
 </details>
 
-#### FILE 
+#### ▫️ FILE 
 This class finds out only the CAT048 messages from the binary file uploaded.
 
 <details>
