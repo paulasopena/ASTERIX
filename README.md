@@ -194,7 +194,7 @@ In order to summarize the development progress contributed by the three main con
 ![image](https://github.com/paulasopena/ASTERIX/assets/91852254/ea64e0e1-79ed-4463-819c-d565444c29f7)
 
 As it can be seen in the GANTT diagram, the most time consuming parts have been the decoding of the data item 250 and doing the transformations to coordinates WGS84.
-## 🔸 CREATOR AND CONTRIBUTORS 🔸
+## 🔸 CREATORS AND CONTRIBUTORS 🔸
 
 * Alba Roma Gómez 🌺
 * Itziar Mensa Minguito 🌻
