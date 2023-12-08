@@ -178,13 +178,20 @@ const MapComponent: React.FC = () => {
     const minutesRes = currentTime % 3600;
     const minutes = Math.floor(minutesRes / 60);
     const seconds = Math.floor(minutesRes % 60);
+    
     setDisplayCurrentTime(`${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`);
-  
+    
     const hoursLatest = Math.floor((latestTime - currentTime) / 3600);
     const minutesLatestRes = (latestTime - currentTime) % 3600;
     const minutesLatest = Math.floor(minutesLatestRes / 60);
     const secondsLatest = Math.floor(minutesLatestRes % 60);
-    setDisplayLatestTime(`${padZero(hoursLatest)}:${padZero(minutesLatest)}:${padZero(secondsLatest)}`);
+    if((hoursLatest && minutesLatest && secondsLatest)>=0){
+      setDisplayLatestTime(`${padZero(hoursLatest)}:${padZero(minutesLatest)}:${padZero(secondsLatest)}`);
+    }
+    else{
+      setIsSimulationRunning(false);
+      setDisplayLatestTime('00:00:00');
+    } 
   };
   
   const padZero = (num: number) => {
@@ -427,7 +434,7 @@ const MapComponent: React.FC = () => {
           value={currentTime}
           onChange={handleTimelineChange}
           step={1}
-          style={{ width: '70%' }}
+          style={{ width: '70%' , backgroundColor: '#ff90d6'}}
         />
         <div style={{ marginRight: '10px' }}>{displayLastestTime}</div>
         <button style={{backgroundColor:'#e2e2e2', borderColor: '#f4f4f4'}} onClick={startSimulation}>
