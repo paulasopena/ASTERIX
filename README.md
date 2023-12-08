@@ -7,7 +7,7 @@ The way of decoding this information is the core of the project.
 ASTERIX classifies its information into different categories depending on the information exchanged. Each surveillance sensor has associated at least one category.
 The category that has been decoded in this project is **CAT048**.
 
-## 🔸 TECHNOLOGY CHOSEN
+## 🔸 TECHNOLOGY CHOSEN 🔸
 
 The ASTERIX codec has been developed with a combination of technologies. 
 
@@ -19,7 +19,7 @@ On the server side, the technology of choice was **Express.js**, a fast and mini
 
 In summary, the ASTERIX codec adopts a full-stack approach with React TypeScript and Electron for the client-side, Express for the server-side, and Node.js as the runtime bridging these components. This technology stack ensures a seamless development experience, efficient communication between client and server, and the flexibility to deploy the application as an executable program.
 
-## 🔸 STRUCTURE OF THE CODE
+## 🔸 STRUCTURE OF THE CODE 🔸
 
 This section is clearly divide it into two parts:
 ### CLASSES AND OBJECTS USED
@@ -185,7 +185,7 @@ Subsequently, when the simulation phase commences, another HTTP request is sent 
 
 ![Diagrama sin título drawio (1)](https://github.com/paulasopena/ASTERIX/assets/91852254/7cf31482-19a2-4dec-99a2-44a250493186)
 
-## 🔸 HOW TO MAKE IT WORK
+## 🔸 HOW TO MAKE IT WORK 🔸
 Videos that explain the software demo.
 ## GANTT DIAGRAM AND PROJECT DEVELOPMENT
 
@@ -194,7 +194,7 @@ In order to summarize the development progress contributed by the three main con
 ![image](https://github.com/paulasopena/ASTERIX/assets/91852254/ea64e0e1-79ed-4463-819c-d565444c29f7)
 
 As it can be seen in the GANTT diagram, the most time consuming parts have been the decoding of the data item 250 and doing the transformations to coordinates WGS84.
-## CREATOR AND CONTRIBUTORS
+## 🔸 CREATOR AND CONTRIBUTORS 🔸
 
 * Alba Roma Gómez 🌺
 * Itziar Mensa Minguito 🌻
