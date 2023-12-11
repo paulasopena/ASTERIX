@@ -189,14 +189,6 @@ class File {
 ````
 </details>
 
-### 🔹 FLOW STRUCTURE 🔹
-
-As mentioned in the technology section, the project follows a client-server structure. In essence, the client initiates an HTTP POST REQUEST to send a file for decoding, and the server undertakes the decoding process. Upon decoding, a CSV file containing the decoded information is generated and stored in a designated location within the project. This approach is adopted due to the decoded CSV's considerable size, surpassing the constraints of a typical HTTP REQUEST.
-
-Subsequently, when the simulation phase commences, another HTTP request is sent to the server. In response, the server provides a list of Aircrafts along with their respective routes. This crucial data enables the client to simulate trajectories effectively.
-
-![Diagrama sin título drawio (1)](https://github.com/paulasopena/ASTERIX/assets/91852254/7cf31482-19a2-4dec-99a2-44a250493186)
-
 #### ▫️ MAIN DECODER FUNCTION
 <details>
   <summary><strong>decodeMessages()</strong></summary>
@@ -734,6 +726,14 @@ async decodeMessages() {
 ````
   
 </details>
+
+### 🔹 FLOW STRUCTURE 🔹
+
+As mentioned in the technology section, the project follows a client-server structure. In essence, the client initiates an HTTP POST REQUEST to send a file for decoding, and the server undertakes the decoding process. Upon decoding, a CSV file containing the decoded information is generated and stored in a designated location within the project. This approach is adopted due to the decoded CSV's considerable size, surpassing the constraints of a typical HTTP REQUEST.
+
+Subsequently, when the simulation phase commences, another HTTP request is sent to the server. In response, the server provides a list of Aircrafts along with their respective routes. This crucial data enables the client to simulate trajectories effectively.
+
+![Diagrama sin título](https://github.com/paulasopena/ASTERIX/assets/91852254/a4b9a790-7e8a-4280-a4c1-cad4a27286de)
 
 ## 🔸 HOW TO MAKE IT WORK 🔸
 
