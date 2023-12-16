@@ -20,10 +20,8 @@ app.get("/readFile/:filePath", async (req, res) => {
   try {
     const filePath = __dirname + "/../uploads/" + req.params.filePath
     const decodedData = []
-    console.log("HELLO THE PROBLEM IS HERE")
 
     const fileStructure = new File(filePath)
-    console.log("HELLO THE PROBLEM IS NOT HERE")
     fileStructure.readFile()
     const currentDir = __dirname
 

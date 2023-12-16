@@ -42,6 +42,7 @@ import StopIcon from '@material-ui/icons/Stop';
 import FastForward from '@material-ui/icons/FastForward';
 import Information from '@material-ui/icons/InfoRounded';
 import PublicIcon from '@material-ui/icons/Public';
+import BarChartIcon from '@material-ui/icons/BarChart';
 import { Public } from '@material-ui/icons';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
@@ -142,6 +143,10 @@ const MapComponent: React.FC = () => {
   const seeTableDecoder = () => {
     navigation('/home2');
   };
+
+  const seeMapP3 = () => {
+    navigation('/map_p3');
+  }
 
   const [fileData, setFileData] = useState<Aircraft[]>([]);
   const [layerTrayectories, setLayerTrayectories] = useState<any>();
@@ -443,8 +448,14 @@ const MapComponent: React.FC = () => {
   const useStyles = makeStyles((theme) => ({
     button: {
       margin: theme.spacing(1),
-      width: '100px',
+      width: '180px',
       height: '70px'
+    },
+
+    button2: {
+      margin: theme.spacing(1),
+      width: '180px',
+      height: '120px'
     },
   }));
   const classes = useStyles();
@@ -461,7 +472,7 @@ const MapComponent: React.FC = () => {
             </DeckGL>
           </div>
       </div>
-      <div style={{ width: '120px', padding: '16px', backgroundColor: '#f4f4f4', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+      <div style={{ width: '200px', padding: '16px', backgroundColor: '#f4f4f4', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
         <Button
           variant="contained"
           color="default"
@@ -505,6 +516,15 @@ const MapComponent: React.FC = () => {
           onClick={seeTableDecoder}
         >
           TABLE
+        </Button>
+        <Button
+          variant="contained"
+          color="default"
+          className={classes.button2}
+          startIcon={<BarChartIcon />}
+          onClick={seeMapP3}
+        >
+          SEPARATION LOSSES ON CONSECUTIVE TAKEOFFS
         </Button>
       </div>
         
