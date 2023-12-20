@@ -9,7 +9,8 @@ const csv = require("csv-parser");
 const path = require("path");
 const util = require("util");
 const ExcelJS = require('exceljs');
-const moment = require('moment');
+const moment = require('moment-timezone');
+const timeZone = 'Europe/Madrid';
 
 const app = express()
 const port = 3001
@@ -369,6 +370,43 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
           const dateB = moment(b.timeDeparture, 'DD/MM/YYYY HH:mm:ss').toDate();
           return dateA - dateB;
         });
+
+        const distances = [];
+        for (let i = 1; i < aircraftArray.length; i++) {
+          const prevAircraft = aircraftArray[i - 1];
+          const currentAircraft = aircraftArray[i];
+
+          const startTime = moment.tz(prevAircraft.timeDeparture, timeZone).toDate();
+          const endTime = moment.tz(`${moment(startTime).format('MM/DD/YYYY')} ${currentAircraft.route[currentAircraft.route.length - 1].timeOfDay}`, timeZone).toDate();
+          
+          let currentTime = moment(startTime);
+
+          distances_between_flights = [];
+          while (currentTime <= moment(endTime)) {
+            const prevPosition = findPositionAtTime(prevAircraft, currentTime.toDate());
+            const currentPosition = findPositionAtTime(currentAircraft, currentTime.toDate());
+
+            if (prevPosition && currentPosition) {
+              const distance = calculateHaversineDistance(
+                prevPosition.lat,
+                prevPosition.lng,
+                currentPosition.lat,
+                currentPosition.lng
+              );
+  
+              distances_between_flights.push(distance);
+            }
+
+            currentTime = currentTime.add(4, 'seconds');
+          }
+
+          const minDistance = Math.min(...distances_between_flights);
+          distances.push(minDistance);
+        }
+        //radarMinimum(aircraftArray, distances);
+        LoAMinimum(aircraftArray, distances);
+        //ContrailsMinimum(aircraftArray, distances);
+
         res.json(aircraftArray);
       })
   } catch (error) {
@@ -376,6 +414,203 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
     res.status(500).send("Internal Server Error")
   }
 })
+
+function radarMinimum(aircraftArray, distances) {
+  const totalDistances = distances.length;
+  const distancesGreaterThan3 = distances.filter(distance => distance > 3).length;
+
+  const percentage = (distancesGreaterThan3 / totalDistances) * 100;
+
+  console.log(`BREACH MINIMUM RADAR: ${distancesGreaterThan3} - ${totalDistances} (${percentage.toFixed(2)}%)`);
+}
+
+function LoAMinimum(aircraftArray, distances) {
+  const currentDir = __dirname
+  const filePath = path.join(
+    currentDir + "../../../Tabla_Clasificacion_aeronaves.csv",
+  )
+
+  let LoARequirements = {
+    'HP': {
+      'HP': { 'SameSID': 5, 'DifferentSID': 3 },
+      'R': { 'SameSID': 5, 'DifferentSID': 3 },
+      'LP': { 'SameSID': 5, 'DifferentSID': 3 },
+      'NR+': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR-': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR': { 'SameSID': 3, 'DifferentSID': 3 }
+    },
+    'R': { 
+      'HP': { 'SameSID': 7, 'DifferentSID': 5 },
+      'R': { 'SameSID': 5, 'DifferentSID': 3 },
+      'LP': { 'SameSID': 5, 'DifferentSID': 3 },
+      'NR+': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR-': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR': { 'SameSID': 3, 'DifferentSID': 3 }
+    },
+    'LP': {
+      'HP': { 'SameSID': 8, 'DifferentSID': 6 },
+      'R': { 'SameSID': 6, 'DifferentSID': 4 },
+      'LP': { 'SameSID': 5, 'DifferentSID': 3 },
+      'NR+': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR-': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR': { 'SameSID': 3, 'DifferentSID': 3 }
+    },
+    'NR+': {
+      'HP': { 'SameSID': 11, 'DifferentSID': 8 },
+      'R': { 'SameSID': 9, 'DifferentSID': 6 },
+      'LP': { 'SameSID': 9, 'DifferentSID': 6 },
+      'NR+': { 'SameSID': 5, 'DifferentSID': 3 },
+      'NR-': { 'SameSID': 3, 'DifferentSID': 3 },
+      'NR': { 'SameSID': 3, 'DifferentSID': 3 }
+    },
+    'NR-': {
+      'HP': { 'SameSID': 9, 'DifferentSID': 9 },
+      'R': { 'SameSID': 9, 'DifferentSID': 9 },
+      'LP': { 'SameSID': 9, 'DifferentSID': 9 },
+      'NR+': { 'SameSID': 9, 'DifferentSID': 6 },
+      'NR-': { 'SameSID': 5, 'DifferentSID': 3 },
+      'NR': { 'SameSID': 3, 'DifferentSID': 3 }
+    },
+    'NR': {
+      'HP': { 'SameSID': 9, 'DifferentSID': 9 },
+      'R': { 'SameSID': 9, 'DifferentSID': 9 },
+      'LP': { 'SameSID': 9, 'DifferentSID': 9 },
+      'NR+': { 'SameSID': 9, 'DifferentSID': 9 },
+      'NR-': { 'SameSID': 9, 'DifferentSID': 9 },
+      'NR': { 'SameSID': 5, 'DifferentSID': 3 }
+    }
+  };
+
+  const columnMapping = {};
+
+  fs.createReadStream(filePath)
+    .pipe(csv({
+      separator: ';',
+    }))
+    .on('data', (row) => {
+      for (const column in row) {
+        if (!columnMapping[column]) {
+          columnMapping[column] = [];
+        }
+        columnMapping[column].push(row[column]);
+      }
+    })
+    .on('end', () => {
+      let count = 0;
+
+      for (let i = 0; i < aircraftArray.length - 1; i++) {
+
+        const typeAircraft1 = aircraftArray[i].typeAircraft;
+        const typeAircraft2 = aircraftArray[+ 1].typeAircraft;
+
+        const typeAircraft1_csv = findTypeName(typeAircraft1, columnMapping);
+        const typeAircraft2_csv = findTypeName(typeAircraft2, columnMapping);
+        if (typeAircraft1_csv && typeAircraft2_csv) {
+          const requiredSeparation = getRequiredSeparation(typeAircraft1_csv, typeAircraft2_csv, LoARequirements);
+          console.log("YINE")
+          
+          const actualDistance = distances[i];
+          
+          if (actualDistance < requiredSeparation) {
+            count++;
+          }
+        }
+        
+        
+      }
+      console.log(`Number of aircraft pairs not maintaining required separation: ${count}`)
+    }
+  );
+
+}
+
+function findTypeName(typeAircraft, columnMapping) {
+  for (const column in columnMapping) {
+    if (columnMapping[column].includes(typeAircraft)) {
+      return column;
+    }
+  }
+  return null;
+}
+
+function getRequiredSeparation(typeAircraft1, typeAircraft2, LoARequirements) {
+  console.log("HERE E")
+  console.log(typeAircraft1 + "  " + typeAircraft2)
+  minDistance = LoARequirements[typeAircraft1][typeAircraft2]
+  return minDistance;
+}
+
+function ContrailsMinimum(aircraftArray, distances) {
+  const separationRequirements = {
+    'Super heavy': {
+        'Heavy': 6,
+        'Medium': 7,
+        'Light': 8
+    },
+    'Heavy': {
+        'Heavy': 4,
+        'Medium': 5,
+        'Light': 6
+    },
+    'Medium': {
+        'Light': 5
+    }
+  };
+
+  const violations = [];
+
+  const contrailTranslation = {
+      'Media': 'Medium',
+      'Ligera': 'Light',
+      'Pesada': 'Heavy',
+      'Super pesada': 'Super heavy'
+  };
+
+  for (let i = 0; i < aircraftArray.length - 1; i++) {
+      const preceding = contrailTranslation[aircraftArray[i].stele];
+      const succeeding = contrailTranslation[aircraftArray[i + 1].stele];
+
+      const requiredSeparation = (separationRequirements[preceding] || {})[succeeding];
+
+      if (requiredSeparation !== undefined) {
+          if (distances[i] < requiredSeparation) {
+              violations.push({ precedingIndex: i, succeedingIndex: i + 1, actualSeparation: distances[i], requiredSeparation: requiredSeparation });
+          }
+      }
+  }
+
+  console.log(violations);
+}
+
+function findPositionAtTime(aircraft, time) {
+  const marginInSeconds = 2;
+
+  const validPosition = aircraft.route.find(coord => {
+    
+    const coordTime = moment.tz(`${moment(time).format('MM/DD/YYYY')} ${coord.timeOfDay}`, timeZone).toDate();
+    const timeDiff = Math.abs(coordTime - time);
+
+    return timeDiff <= marginInSeconds * 1000;
+  });
+
+  return validPosition || null;
+}
+
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return distance;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
