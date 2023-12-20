@@ -7,6 +7,7 @@ const Aircraft = require("../domain/Aircraft");
 const csv = require("csv-parser");
 const path = require("path");
 const util = require("util");
+const ExcelJS = require('exceljs');
 
 const app = express()
 const port = 3001
@@ -232,6 +233,114 @@ app.get("/aircrafts/:filePath", async (req, res) => {
             });
           }
         }
+      })
+      .on("end", () => {
+        res.json(Object.values(aircraftMap))
+      })
+  } catch (error) {
+    console.error("Error", error)
+    res.status(500).send("Internal Server Error")
+  }
+})
+
+let aircraftIdentifiers = new Set();
+const loadAircraftIdentifiers = async () => {
+  console.log('estoy leyendo el excel');
+  const workbook = new ExcelJS.Workbook();
+  const currentDir = __dirname
+  const filePath = path.join(
+    currentDir + "../../../2305_02_dep_lebl.xlsx",
+  )
+  await workbook.xlsx.readFile(filePath);
+  const worksheet = workbook.getWorksheet(1);
+  let firstRow = true;
+  worksheet.eachRow(row => {
+    if (firstRow) {
+      firstRow = false; 
+    } else {
+      aircraftIdentifiers.add(row.getCell('B').value); 
+    }
+  });
+  console.log('ya lo he leido');
+}
+
+app.get("/filteredAircrafts/:filePath", async (req, res) => {
+  const MIN_LAT = 40.9;
+  const MAX_LAT = 41.7;
+  const MIN_LNG = 1.5;
+  const MAX_LNG = 2.6;
+  
+
+  try {
+    const currentDir = __dirname
+    const filePathCSV = path.join(
+      currentDir + "../../../",
+      req.params.filePath.replace(".ast", ".csv")
+    )
+
+    try {
+      await stat(filePathCSV)
+      console.log("El archivo CSV ya existe.")
+    } catch (error) {
+      const e = error
+      if (e.code === "ENOENT") {
+        console.log("El archivo CSV no existe, creándolo...")
+        const dir = path.dirname(filePathCSV)
+        await mkdir(dir, { recursive: true })
+      } else {
+        throw error
+      }
+    }
+
+    const aircraftMap = {}
+
+    await loadAircraftIdentifiers();
+    console.log(aircraftIdentifiers);
+
+    fs.createReadStream(filePathCSV)
+      .pipe(csv())
+      .on("data", data => {
+        const {
+          aircraftIdentification,
+          IAS,
+          flightLevel,
+          lat,
+          lng,
+          Height,
+          timeOfDay, 
+          TYP
+        } = data
+
+        const validTYPValues = [
+          'Single ModeS All-Call',
+          'Single ModeS Roll-Call',
+          'ModeS All-Call + PSR',
+          'ModeS Roll-Call + PSR'
+        ];
+
+        if (aircraftIdentifiers.has(aircraftIdentification)) {
+          if (Number(lat) >= MIN_LAT && Number(lat) <= MAX_LAT && Number(lng) >= MIN_LNG && Number(lng) <= MAX_LNG) {
+            if(validTYPValues.includes(TYP)){
+              if (!aircraftMap[aircraftIdentification]) {
+                const newAircraft = new Aircraft(
+                  aircraftIdentification,
+                  Number(IAS),
+                  Number(flightLevel),
+                  [{ lat: Number(lat), lng: Number(lng), height: Number(flightLevel)*100*0.3048, timeOfDay: String(timeOfDay) }],
+                  String(TYP)
+                );
+                aircraftMap[aircraftIdentification] = newAircraft;
+              } else {
+                aircraftMap[aircraftIdentification].addRouteElement({
+                  lat: Number(lat),
+                  lng: Number(lng),
+                  height: Number(flightLevel),
+                  timeOfDay: String(timeOfDay)
+                });
+              }
+            }
+          }   
+        }             
       })
       .on("end", () => {
         res.json(Object.values(aircraftMap))

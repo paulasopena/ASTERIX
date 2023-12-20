@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline, PlayOutline, StopSharp, FlashOutline} from 'react-ionicons';
 import { useNavigate } from 'react-router-dom';
-import { getAircrafts } from "../../asterix/file_manager";
+import { getAircrafts, getFilteredAircrafts } from "../../asterix/file_manager";
 import { Map } from 'react-map-gl';
 import DeckGL from '@deck.gl/react/typed';
 import {GeoJsonLayer} from '@deck.gl/layers/typed';
@@ -98,29 +98,10 @@ const MapComponent_P3: React.FC = () => {
         const filePathCSV = localStorage.getItem('nombreArchivo');
         if (filePathCSV) {
           const filePath = filePathCSV.replace('.ast', '.csv');
-          const aircrafts =await getAircrafts(filePath);
+          const aircrafts = await getFilteredAircrafts(filePath);
           if (aircrafts != undefined) {
-            const parsedAircrafts = JSON.parse(aircrafts);
-            const zonaBarcelona = {
-                latitudMin: 41,
-                latitudMax: 41.4,
-                longitudMin: 1.7,
-                longitudMax: 2.3,
-            };
-    
-            const filteredAircrafts = parsedAircrafts.filter((aircraft: { route: { lat: any; lng: any; }[]; }) => {
-                const { lat, lng } = aircraft.route[0];
-                return (
-                    lat >= zonaBarcelona.latitudMin &&
-                    lat <= zonaBarcelona.latitudMax &&
-                    lng >= zonaBarcelona.longitudMin &&
-                    lng <= zonaBarcelona.longitudMax
-                );
-            });
-
-            console.log(filteredAircrafts);
-    
-            setFileData(filteredAircrafts);
+            const parsedAircrafts = JSON.parse(aircrafts);    
+            setFileData(parsedAircrafts);
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
               aircraft.route.forEach((position: { timeOfDay: string; }) => {
@@ -189,7 +170,7 @@ const MapComponent_P3: React.FC = () => {
         const filePathCSV = localStorage.getItem('nombreArchivo');
         if (filePathCSV) {
           const filePath = filePathCSV.replace('.ast', '.csv');
-          const aircrafts =await getAircrafts(filePath);
+          const aircrafts =await getFilteredAircrafts(filePath);
           if (aircrafts != undefined) {
             const parsedAircrafts = JSON.parse(aircrafts);
             setFileData(parsedAircrafts);
@@ -422,43 +403,6 @@ const MapComponent_P3: React.FC = () => {
     setCurrentTime(value);
   };
 
-  const downloadFile = () => {
-    const filePathCSV = localStorage.getItem('nombreArchivo');
-    if (filePathCSV) {
-      const filePath = filePathCSV.replace('.ast', '_excel.csv');
-  
-      const fileUrl = process.env.PUBLIC_URL + '/' + filePath;
-    
-      window.location.href = fileUrl;
-    }
-    
-  };
-
-
-  const generateKML = () => {
-    const root = create({
-      version: "1.0",
-      encoding: "UTF-8",
-    }).ele("kml", { xmlns: "http://www.opengis.net/kml/2.2" });
-    const document = root.ele("Document");
-  
-    fileData.forEach((flight) => {
-      const placemark = document.ele("Placemark");
-      const nameNode = placemark.ele("name");
-      nameNode.txt(`Aircraft Identification: ${flight.aircraftIdentification}`);
-      const descriptionNode = placemark.ele("description");
-      descriptionNode.txt(`IAS: ${flight.IAS}, Flight Level: ${flight.flightLevel}, TYP: ${flight.TYP}`);
-  
-      const lineString = placemark.ele("LineString");
-      const coordinates = flight.route.map((point) => `${point.lng},${point.lat},${point.height}`).join(" ");
-      lineString.ele("coordinates").txt(coordinates);
-    });
-  
-    const kmlContent = root.end({ prettyPrint: true });
-  
-    const blob = new Blob([kmlContent], { type: "application/xml;charset=utf-8" });
-    saveAs(blob, "flight_data.kml");
-  }
   const useStyles = makeStyles((theme) => ({
     button: {
       margin: theme.spacing(1),
