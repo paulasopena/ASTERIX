@@ -4,6 +4,7 @@ const cors = require("cors");
 const File = require("../domain/File");
 const multer = require("multer");
 const Aircraft = require("../domain/Aircraft");
+const AircraftFiltered = require("../domain/AircraftFiltered");
 const csv = require("csv-parser");
 const path = require("path");
 const util = require("util");
@@ -243,7 +244,7 @@ app.get("/aircrafts/:filePath", async (req, res) => {
   }
 })
 
-let aircraftIdentifiers = new Set();
+let filteredAircrafts = [];
 const loadAircraftIdentifiers = async () => {
   console.log('estoy leyendo el excel');
   const workbook = new ExcelJS.Workbook();
@@ -258,7 +259,24 @@ const loadAircraftIdentifiers = async () => {
     if (firstRow) {
       firstRow = false; 
     } else {
-      aircraftIdentifiers.add(row.getCell('B').value); 
+      const aircraftIdentification = row.getCell('B').value;
+      const timeDeparture = row.getCell('C').value;
+      const typeAircraft = row.getCell('E').value;
+      const stele = row.getCell('F').value;
+      const procDep = row.getCell('G').value;
+      const runway = row.getCell('H').value;
+
+      const aircraftFiltered = new AircraftFiltered(
+        aircraftIdentification,
+        timeDeparture,
+        typeAircraft,
+        [], 
+        stele,
+        procDep,
+        runway
+      );
+
+      filteredAircrafts.push(aircraftFiltered);
     }
   });
   console.log('ya lo he leido');
@@ -295,7 +313,6 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
     const aircraftMap = {}
 
     await loadAircraftIdentifiers();
-    console.log(aircraftIdentifiers);
 
     fs.createReadStream(filePathCSV)
       .pipe(csv())
@@ -318,31 +335,34 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
           'ModeS Roll-Call + PSR'
         ];
 
-        if (aircraftIdentifiers.has(aircraftIdentification)) {
-          if (Number(lat) >= MIN_LAT && Number(lat) <= MAX_LAT && Number(lng) >= MIN_LNG && Number(lng) <= MAX_LNG) {
-            if(validTYPValues.includes(TYP)){
-              if (!aircraftMap[aircraftIdentification]) {
-                const newAircraft = new Aircraft(
-                  aircraftIdentification,
-                  Number(IAS),
-                  Number(flightLevel),
-                  [{ lat: Number(lat), lng: Number(lng), height: Number(flightLevel)*100*0.3048, timeOfDay: String(timeOfDay) }],
-                  String(TYP)
-                );
-                aircraftMap[aircraftIdentification] = newAircraft;
-              } else {
-                aircraftMap[aircraftIdentification].addRouteElement({
-                  lat: Number(lat),
-                  lng: Number(lng),
-                  height: Number(flightLevel),
-                  timeOfDay: String(timeOfDay)
-                });
-              }
+        const aircraftFiltered = filteredAircrafts.find(a => a.aircraftIdentification === aircraftIdentification);
+
+        if (aircraftFiltered && Number(lat) >= MIN_LAT && Number(lat) <= MAX_LAT && Number(lng) >= MIN_LNG && Number(lng) <= MAX_LNG) {
+          if(validTYPValues.includes(TYP)){
+            if (!aircraftMap[aircraftIdentification]) {
+              const newAircraft = new AircraftFiltered(
+                aircraftFiltered.aircraftIdentification,
+                aircraftFiltered.timeDeparture,
+                aircraftFiltered.typeAircraft,
+                [{ lat: Number(lat), lng: Number(lng), height: Number(flightLevel)*100*0.3048, timeOfDay: String(timeOfDay) }],
+                aircraftFiltered.stele,
+                aircraftFiltered.procDep,
+                aircraftFiltered.runway
+              );
+              aircraftMap[aircraftIdentification] = newAircraft;
+            } else {
+              aircraftMap[aircraftIdentification].addRouteElement({
+                lat: Number(lat),
+                lng: Number(lng),
+                height: Number(flightLevel)*100*0.3048,
+                timeOfDay: String(timeOfDay)
+              });
             }
-          }   
-        }             
+          }
+        }              
       })
       .on("end", () => {
+        console.log(aircraftMap);
         res.json(Object.values(aircraftMap))
       })
   } catch (error) {

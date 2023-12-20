@@ -8,7 +8,6 @@ import {GeoJsonLayer} from '@deck.gl/layers/typed';
 import {create} from 'xmlbuilder2';
 import {saveAs} from 'file-saver';
 import './HomeStyle.css';
-import { Aircraft, RouteCoordinates } from '../../domain/Aircraft';
 import Picker from './PickerScreen';
 import airplaneIcon from '../../images/airplane.png';
 import airplaneIcon2 from '../../images/airplane_pink.png';
@@ -41,6 +40,7 @@ import StopIcon from '@material-ui/icons/Stop';
 import FastForward from '@material-ui/icons/FastForward';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import Home from '@material-ui/icons/Home';
+import { AircraftFiltered, RouteCoordinates } from '../../domain/AircraftFiltered';
 
 const MAP_TOKEN = "pk.eyJ1IjoiYWxiaWV0YSIsImEiOiJjbHBuem12NzAwcjE5MmtxeTdqZHl5bDVzIn0.9Ut0-aEAkqOPZ1OwQlpbIA";
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
@@ -143,7 +143,7 @@ const MapComponent_P3: React.FC = () => {
     navigation('/map');
   };
 
-  const [fileData, setFileData] = useState<Aircraft[]>([]);
+  const [fileData, setFileData] = useState<AircraftFiltered[]>([]);
   const [layerTrayectories, setLayerTrayectories] = useState<any>();
   const [layerIcon, setLayerIcon] = useState<any>();
   const [earliestTime, setEarliestTime] = useState<number>(0);
@@ -154,7 +154,7 @@ const MapComponent_P3: React.FC = () => {
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
   const [simulationSpeed, setSimulationSpeed] = useState<number>(500);
   const [buttonColor, setButtonColor] = useState<string>('#333');
-  const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
+  const [selectedAircraft, setSelectedAircraft] = useState<AircraftFiltered | null>(null);
 
   const [selectedImage, setSelectedImage] = useState('');
 
@@ -493,8 +493,11 @@ const MapComponent_P3: React.FC = () => {
                 <h2>Flight Details</h2>
                 <div>
                     <p><strong>Aicraft ID:</strong> {selectedAircraft.aircraftIdentification}</p>
-                    <p><strong>Flight Level:</strong> {selectedAircraft.flightLevel.toString()} FL</p>
-                    <p><strong>IAS:</strong> {selectedAircraft.IAS.toString()} kts</p>
+                    <p><strong>Time Departure:</strong> {selectedAircraft.timeDeparture} </p>
+                    <p><strong>Type Aircraft:</strong> {selectedAircraft.typeAircraft}</p>
+                    <p><strong>Stele:</strong> {selectedAircraft.stele}</p>
+                    <p><strong>Procedure of Departure:</strong> {selectedAircraft.procDep}</p>
+                    <p><strong>Runway:</strong> {selectedAircraft.runway}</p>
                 </div>
             </div>
         </div>
