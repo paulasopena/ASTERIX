@@ -1,3 +1,4 @@
+import { CenterUtils } from "./CenterUtils";
 class CoordinatesXYZ {
   constructor(x, y, z) {
     this.X = x;
@@ -19,6 +20,14 @@ class CoordinatesWGS84 {
     this.Lat = Lat;
     this.Lon = Lon;
     this.Alt = Alt;
+  }
+}
+
+class CoordinatesUVH {
+  constructor(U, V, Height){
+    this.U=U;
+    this.V=V;
+    this.Height=Height;
   }
 }
 
@@ -64,6 +73,17 @@ class GeneralMatrix {
       }
     }
     return X
+  }
+  substractEquals(B){
+    this.checkMatrixDimensions(B);
+    const X = new GeneralMatrix(this.n, this.m, this.matrix)
+    for (let i = 0; i < this.n; i++) {
+      for (let j = 0; j < this.m; j++) {
+        X.matrix[i][j] -= B.matrix[i][j]
+      }
+    }
+    return X
+
   }
   checkMatrixDimensions(B) {
     if (B.m !== this.m || B.n !== this.n) {
@@ -189,16 +209,59 @@ class GeoUtils {
 
     return res
   }
+  geocentric2systemCartesian(geo){
+    let centerUtils = new CenterUtils(this.getTheCenter);
+    let T1 = centerUtils.translationMatrix;
+    let R1 = centerUtils.rotationMatrix;
+   
+
+    if (!centerUtils.coordinates || !R1 || !T1 || !geo) return null;
+
+    let coefInput = [geo.X, geo.Y, geo.Z];
+    let inputMatrix = new Array(3).fill(0).map((_, i) => [coefInput[i]]);
+    let inputMatrixObj = new GeneralMatrix(inputMatrix, 3, 1);
+    inputMatrixObj.substractEquals(T1);
+    let R2 = R1.multiply(inputMatrixObj);
+    let res = {
+        X: R2.GetElement(0, 0),
+        Y: R2.GetElement(1, 0),
+        Z: R2.GetElement(2, 0)
+    };
+    return res;
+  }
+  systemCartesian2systemStereographical(c){
+    if (!c) return null;
+    let res = new CoordinatesUVH();
+    let d_xy2 = c.X * c.X + c.Y * c.Y;
+    res.Height = Math.sqrt(d_xy2 +
+        (c.Z + this.centerProjection.Height + this.R_S) *
+        (c.Z + this.centerProjection.Height + this.R_S)) - this.R_S;
+    let k = (2 * this.R_S) /
+        (2 * this.R_S + this.centerProjection.Height + c.Z + res.Height);
+    res.U = k * c.X;
+    res.V = k * c.Y;
+    return res;
+  }
   conversion(polarCoordinates) {
     const cartesianFirst = this.polarCoordinates2cartesian(polarCoordinates)
     const geodesicSecond = this.cartesian2Geocentric(cartesianFirst)
     const geocentricThird = this.geocentric2Geodesic(geodesicSecond)
     return geocentricThird
   }
+  conversionEstereographical(polarCoordinates){
+    const cartesianFirst = this.polarCoordinates2cartesian(polarCoordinates)
+    const geocentricSecond = this.cartesian2Geocentric(cartesianFirst)
+    const systemCartesianThird = this.geocentric2systemCartesian(geocentricSecond);
+    const systemStereographical = this.systemCartesian2systemStereographical(systemCartesianThird);
+    return systemStereographical;
+  }
 }
 
 function getTheRadar() {
   return { Lat: 41.3007023, Lon: 2.1020588, Alt: 2.007 + 25.25 };
+}
+function getTheCenter() {
+  return { Lat: 41.10904, Lon: 1.226947, Alt: 3438.954 };
 }
 
 function calculateElevation(rhoNM, FL) {
@@ -230,8 +293,10 @@ module.exports = {
   CoordinatesXYZ,
   CoordinatesPolar,
   CoordinatesWGS84,
+  CoordinatesUVH,
   GeneralMatrix,
   GeoUtils,
   getTheRadar,
+  getTheCenter,
   calculateElevation,
 };
