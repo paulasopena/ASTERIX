@@ -134,7 +134,7 @@ const MapComponent_P3: React.FC = () => {
   };
 
   const seeStatistics = () => {
-    navigation('/home2');
+    navigation('/chooseStatistic');
   };
 
   const returnHome = () => {
@@ -352,7 +352,7 @@ const MapComponent_P3: React.FC = () => {
         const minutes = new Date(fileData[index + 1].timeDeparture).getMinutes();
         const seconds = new Date(fileData[index + 1].timeDeparture).getSeconds();
         const timeDeparture = (hours-2)*3600 + minutes*60 + seconds;
-        if ((timeDeparture - 20) < currentTime) {
+        if ((timeDeparture) < currentTime && (timeDeparture + 200) > currentTime) {
           const currentIndex1 = aircraft.route.findIndex(position => {
             const positionTime = convertTimeToSeconds(position.timeOfDay);
             return Math.abs(currentTime - positionTime) < 5;
@@ -375,7 +375,7 @@ const MapComponent_P3: React.FC = () => {
                 currentPosition2.lat, currentPosition2.lng
               );
               
-              const distanceText = (distance).toFixed(2) + ' m - ' + (distance * 0.00053995680345572).toFixed(2) + ' NM';
+              const distanceText = (distance * 0.00053995680345572).toFixed(2) + ' NM';
   
               const lineBetweenAircrafts = {
                 type: 'Feature',
