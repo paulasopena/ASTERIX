@@ -772,7 +772,7 @@ class CAT048 {
       (finalConversion.Lon * 180.0) / Math.PI
   }
   async setConvertToStereographical(){
-    console.log('HELLO PUTITAS');
+   
     const radarCoords = getTheRadar()
     const geoUtils = new GeoUtils(radarCoords)
     const elevation = calculateElevation(
@@ -786,8 +786,11 @@ class CAT048 {
     )
     const finalConversionEstereographical = geoUtils.conversionEstereographical(polarCoordinatesDetected);
     this.calculatedPositionStereographical.U=finalConversionEstereographical.U; 
+    console.log(finalConversionEstereographical.U);
     this.calculatedPositionStereographical.V=finalConversionEstereographical.V;
+    console.log(finalConversionEstereographical.V);
     this.calculatedPositionStereographical.Height;
+    console.log(finalConversionEstereographical.Height);
     
 
   }

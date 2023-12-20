@@ -1,4 +1,6 @@
-import { CenterUtils } from "./CenterUtils";
+const {
+  CenterUtils
+} = require("./CenterUtils");
 class CoordinatesXYZ {
   constructor(x, y, z) {
     this.X = x;
@@ -210,11 +212,11 @@ class GeoUtils {
     return res
   }
   geocentric2systemCartesian(geo){
-    let centerUtils = new CenterUtils(this.getTheCenter);
+    const centerCoordinates = getTheCenter();
+    console.log(centerCoordinates);
+    let centerUtils = new CenterUtils(centerCoordinates);
     let T1 = centerUtils.translationMatrix;
     let R1 = centerUtils.rotationMatrix;
-   
-
     if (!centerUtils.coordinates || !R1 || !T1 || !geo) return null;
 
     let coefInput = [geo.X, geo.Y, geo.Z];
@@ -249,9 +251,13 @@ class GeoUtils {
     return geocentricThird
   }
   conversionEstereographical(polarCoordinates){
+    console.log('here i am!');
     const cartesianFirst = this.polarCoordinates2cartesian(polarCoordinates)
+    console.log(cartesianFirst);
     const geocentricSecond = this.cartesian2Geocentric(cartesianFirst)
+    console.log(geocentricSecond);
     const systemCartesianThird = this.geocentric2systemCartesian(geocentricSecond);
+    console.log(systemCartesianThird);
     const systemStereographical = this.systemCartesian2systemStereographical(systemCartesianThird);
     return systemStereographical;
   }
