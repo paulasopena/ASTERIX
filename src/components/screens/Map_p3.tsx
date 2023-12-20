@@ -1,12 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {FolderOpenOutline, FileTrayOutline, DownloadOutline, TabletLandscapeOutline, PlayOutline, StopSharp, FlashOutline} from 'react-ionicons';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAircrafts, getFilteredAircrafts } from "../../asterix/file_manager";
+import { getFilteredAircrafts } from "../../asterix/file_manager";
 import { Map } from 'react-map-gl';
 import DeckGL from '@deck.gl/react/typed';
-import {GeoJsonLayer} from '@deck.gl/layers/typed';
-import {create} from 'xmlbuilder2';
-import {saveAs} from 'file-saver';
+import {GeoJsonLayer, TextLayer} from '@deck.gl/layers/typed';
 import './HomeStyle.css';
 import Picker from './PickerScreen';
 import airplaneIcon from '../../images/airplane.png';
@@ -48,7 +45,7 @@ const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/s
 const INITIAL_VIEW_STATE = {
   latitude: 41.287738,
   longitude: 2.069213,
-  zoom: 12,
+  zoom: 11,
   bearing: 0,
   pitch: 30
 }
@@ -121,6 +118,7 @@ const MapComponent_P3: React.FC = () => {
 
 
             setEarliestTime(earliest);
+            console.log(earliest)
             setLatestTime(latest);
             setCurrentTime(earliest);
             
@@ -146,6 +144,7 @@ const MapComponent_P3: React.FC = () => {
   const [fileData, setFileData] = useState<AircraftFiltered[]>([]);
   const [layerTrayectories, setLayerTrayectories] = useState<any>();
   const [layerIcon, setLayerIcon] = useState<any>();
+  const [textLayer, setTextLayer] = useState<any>();
   const [earliestTime, setEarliestTime] = useState<number>(0);
   const [latestTime, setLatestTime] = useState<number>(100);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -192,6 +191,7 @@ const MapComponent_P3: React.FC = () => {
             });
 
             setEarliestTime(earliest);
+            console.log(earliest);
             setLatestTime(latest);
             setCurrentTime(earliest);
             
@@ -267,6 +267,22 @@ const MapComponent_P3: React.FC = () => {
     const radToDeg = (radians: number) => radians * (180 / Math.PI);
     return (radToDeg(angle) + 270) % 360;
   }
+
+  function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lng2-lng1) * Math.PI/180;
+  
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  
+    const distance = R * c;
+    return distance; 
+  }
   
 
   const updatePositions = () => {
@@ -329,31 +345,83 @@ const MapComponent_P3: React.FC = () => {
       }
     }));
 
-    const routeLines = fileData.map(aircraft => {
-      const TRAIL_LENGTH = 10;
+    const routeLines = fileData.map((aircraft, index) => {
+      
+      if (index < fileData.length - 1) {
+        const hours = new Date(fileData[index + 1].timeDeparture).getHours();
+        const minutes = new Date(fileData[index + 1].timeDeparture).getMinutes();
+        const seconds = new Date(fileData[index + 1].timeDeparture).getSeconds();
+        const timeDeparture = (hours-2)*3600 + minutes*60 + seconds;
+        if ((timeDeparture - 20) < currentTime) {
+          const currentIndex1 = aircraft.route.findIndex(position => {
+            const positionTime = convertTimeToSeconds(position.timeOfDay);
+            return Math.abs(currentTime - positionTime) < 5;
+          });
+    
+          if (currentIndex1 !== -1) {
+            const currentPosition1 = aircraft.route[currentIndex1];
+            
+            const nextAircraft = fileData[index + 1];
+            const currentIndex2 = nextAircraft.route.findIndex(position => {
+              const positionTime = convertTimeToSeconds(position.timeOfDay);
+              return Math.abs(currentTime - positionTime) < 5;
+            });
   
-      const routeCoordinates = aircraft.route.map(position => [position.lng, position.lat]);
+            if (currentIndex2 !== -1) {
+              const currentPosition2 = nextAircraft.route[currentIndex2];
   
-      const currentIndex = aircraft.route.findIndex(position => {
-        const positionTime = convertTimeToSeconds(position.timeOfDay);
-        return Math.abs(currentTime - positionTime) < 5;
-      });
+              const distance = calculateDistance(
+                currentPosition1.lat, currentPosition1.lng,
+                currentPosition2.lat, currentPosition2.lng
+              );
+              
+              const distanceText = (distance).toFixed(2) + ' m - ' + (distance * 0.00053995680345572).toFixed(2) + ' NM';
   
-      const startIndex = Math.max(0, currentIndex - TRAIL_LENGTH);
-  
-      const currentLine = {
-        type: 'Feature',
-        properties: {
-          isCurrentLine: true,
-        },
-        geometry: {
-          type: 'LineString',
-          coordinates: routeCoordinates.slice(startIndex, currentIndex + 1),
-        },
-      };
-  
-      return [currentLine];
-    }).flat();
+              const lineBetweenAircrafts = {
+                type: 'Feature',
+                properties: {
+                  isCurrentLine: true,
+                  distanceText: distanceText
+                },
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [currentPosition1.lng, currentPosition1.lat],
+                    [currentPosition2.lng, currentPosition2.lat],
+                  ],
+                },
+              };
+      
+              return lineBetweenAircrafts;
+            }
+          }
+        }
+        return null;
+        
+      }
+      return null;
+    }).filter(line => line !== null);
+
+    setTextLayer(new TextLayer({
+      id: 'text-layer',
+      data: routeLines,
+      getText: d => d.properties.distanceText,
+      getPosition: (d: { geometry: { coordinates: [number, number, number][] } }) => {
+        const start = d.geometry.coordinates[0];
+        const end = d.geometry.coordinates[1];
+        const midpoint = [
+          (start[0] + end[0]) / 2,
+          (start[1] + end[1]) / 2,
+          (start[2] + end[2]) / 2
+        ];
+        return midpoint as [number, number, number];
+      },
+      getTextSize: 8,
+      sizeScale: 0.5,
+      sizeUnits: 'pixels',
+      sizeMinPixels: 8, 
+      sizeMaxPixels: 50, 
+    }));
 
     setLayerTrayectories(new GeoJsonLayer({
       id: 'trayectories',
@@ -418,7 +486,7 @@ const MapComponent_P3: React.FC = () => {
             <DeckGL
               initialViewState={INITIAL_VIEW_STATE}
               controller={true}
-              layers={layerTrayectories && layerIcon ? [layerTrayectories, layerIcon] : []}
+              layers={layerTrayectories && layerIcon && textLayer ? [layerTrayectories, layerIcon, textLayer] : []}
             >
               <Map mapStyle={MAP_STYLE}  mapboxAccessToken={MAP_TOKEN} />
             </DeckGL>

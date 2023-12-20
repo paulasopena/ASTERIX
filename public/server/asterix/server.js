@@ -9,6 +9,7 @@ const csv = require("csv-parser");
 const path = require("path");
 const util = require("util");
 const ExcelJS = require('exceljs');
+const moment = require('moment');
 
 const app = express()
 const port = 3001
@@ -362,8 +363,13 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
         }              
       })
       .on("end", () => {
-        console.log(aircraftMap);
-        res.json(Object.values(aircraftMap))
+        const aircraftArray = Object.values(aircraftMap);
+        aircraftArray.sort((a, b) => {
+          const dateA = moment(a.timeDeparture, 'DD/MM/YYYY HH:mm:ss').toDate();
+          const dateB = moment(b.timeDeparture, 'DD/MM/YYYY HH:mm:ss').toDate();
+          return dateA - dateB;
+        });
+        res.json(aircraftArray);
       })
   } catch (error) {
     console.error("Error", error)
