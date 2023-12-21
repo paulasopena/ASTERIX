@@ -3,7 +3,8 @@ const {
   CoordinatesPolar,
   calculateElevation,
   GeoUtils,
-  getTheRadar
+  getTheRadar,
+  getTheCenter
 } = require("./GeneralMatrix");
 
 class CAT048 {
@@ -20,6 +21,7 @@ class CAT048 {
     this.measuredPositionPolarCoordinates = { rho: 0, theta: 0 }
     this.calculatedPositionCartesianCoordinates = { x: 0, y: 0 }
     this.calculatedPositionLLACoordinates = { lat: 0, lng: 0 }
+    this.calculatedPositionStereographical = { U:0, V: 0, Height:0}
     this.mode3ACodeOctalRepresentation = { V: "", G: "", L: "", mode3A: "" }
     this.flightLevelBinaryRepresentation = { V: "", G: "", flightLevel: 0 }
     this.modeCcorrected = 0
@@ -613,6 +615,8 @@ class CAT048 {
       }
       this.setModeCCorrected()
       this.setLatitudeLongitude()
+      this.setConvertToStereographical()
+      
       j += 1
     }
   }
@@ -766,6 +770,23 @@ class CAT048 {
       (finalConversion.Lat * 180.0) / Math.PI
     this.calculatedPositionLLACoordinates.lng =
       (finalConversion.Lon * 180.0) / Math.PI
+  }
+  async setConvertToStereographical(){
+    const radarCoords = getTheRadar()
+    const geoUtils = new GeoUtils(radarCoords)
+    const elevation = calculateElevation(
+      this.measuredPositionPolarCoordinates.rho,
+      this.flightLevelBinaryRepresentation.flightLevel
+    )
+    const polarCoordinatesDetected = new CoordinatesPolar(
+      this.measuredPositionPolarCoordinates.rho * 1852,
+      elevation,
+      this.measuredPositionPolarCoordinates.theta * (Math.PI / 180)
+    )
+    const finalConversionEstereographical = geoUtils.conversionEstereographical(polarCoordinatesDetected);
+    this.calculatedPositionStereographical.U=finalConversionEstereographical.U; 
+    this.calculatedPositionStereographical.V=finalConversionEstereographical.V;
+    this.calculatedPositionStereographical.Height=finalConversionEstereographical.Height;
   }
 
   async setCalculatedPositionCartesianCoordinates(buffer) {
