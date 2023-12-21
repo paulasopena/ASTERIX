@@ -783,10 +783,18 @@ class CAT048 {
       elevation,
       this.measuredPositionPolarCoordinates.theta * (Math.PI / 180)
     )
-    const finalConversionEstereographical = geoUtils.conversionEstereographical(polarCoordinatesDetected);
+    const finalConversion = geoUtils.conversion(polarCoordinatesDetected)
+    const finalConversionEstereographical = geoUtils.conversionFromGeodesic(finalConversion);
     this.calculatedPositionStereographical.U_stereo=finalConversionEstereographical.U; 
     this.calculatedPositionStereographical.V_stereo=finalConversionEstereographical.V;
     this.calculatedPositionStereographical.Height_stereo=finalConversionEstereographical.Height;
+   
+    /*
+    const coordsTMA=getTheCenter();
+    const finalConversionTMA = geoUtils.conversionFromGeodesic(coordsTMA);
+    console.log(finalConversionTMA);
+    */
+
   }
 
   async setCalculatedPositionCartesianCoordinates(buffer) {

@@ -211,6 +211,20 @@ class GeoUtils {
 
     return res
   }
+  geodesic2geocentric(c){
+   
+    
+    const A =6378137.0;
+    const E2=0.00669437999013;
+    let res = new CoordinatesXYZ();
+    let nu = A / Math.sqrt(1 - E2 * Math.pow(Math.sin(c.Lat), 2.0));
+  
+    res.X = (nu + c.Alt) * Math.cos(c.Lat) * Math.cos(c.Lon);
+    res.Y = (nu + c.Alt) * Math.cos(c.Lat) * Math.sin(c.Lon);
+    res.Z = (nu * (1 - E2) + c.Alt) * Math.sin(c.Lat);
+
+    return res;
+  }
   geocentric2systemCartesian(geo){
     const centerCoordinates = getTheCenter();
     let centerUtils = new CenterUtils(centerCoordinates);
@@ -258,6 +272,12 @@ class GeoUtils {
     const systemCartesianThird = this.geocentric2systemCartesian(geocentricSecond);
     const systemStereographical = this.systemCartesian2systemStereographical(systemCartesianThird);
     return systemStereographical;
+  }
+  conversionFromGeodesic(geodesicCoordinates){
+    const geocentricFirst=this.geodesic2geocentric(geodesicCoordinates);
+    const systemCartesianSecond=this.geocentric2systemCartesian(geocentricFirst);
+    const systemStereographicalThird= this.systemCartesian2systemStereographical(systemCartesianSecond);
+    return systemStereographicalThird;
   }
 }
 
