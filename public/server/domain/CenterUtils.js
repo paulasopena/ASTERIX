@@ -1,6 +1,6 @@
 class CenterUtils {
-    constructor(centerCoordinates) {
-      this.coordinates=centerCoordinates;
+    constructor(coordinates) {
+      this.coordinates=coordinates;
       this.rotationMatrix=this.calculateRotationMatrix(); 
       this.translationMatrix=this.calculateTranslationMatrix();
     }
@@ -20,8 +20,8 @@ class CenterUtils {
             Math.sin(lat)
           ]
         ]
-    
-        const rotationMatrix = new GeneralMatrix(3, 3, rotationValues)
+       
+        const rotationMatrix = new GeneralMatrix(3, 3, rotationValues);
         return rotationMatrix
       }
       calculateTranslationMatrix() {
@@ -39,6 +39,69 @@ class CenterUtils {
         ])
         return translationMatrix
       }
+  }
+  class GeneralMatrix {
+    constructor(n, m, matrix) {
+      if (matrix === null || matrix === undefined) {
+        this.n = n
+        this.m = m
+        this.matrix = Array.from({ length: this.n }, () => Array(this.m).fill(0))
+        return
+      }
+      this.m = m
+      this.n = n
+      this.matrix = matrix
+    }
+    transpose() {
+      const transMatrix = new GeneralMatrix(this.m, this.n)
+      for (let i = 0; i < this.m; i++) {
+        for (let j = 0; j < this.n; j++) {
+          transMatrix.matrix[j][i] = this.matrix[i][j]
+        }
+      }
+      return transMatrix
+    }
+    multiply(B) {
+      const X = new GeneralMatrix(this.n, B.m)
+      for (let i = 0; i < X.n; i++) {
+        for (let k = 0; k < X.m; k++) {
+          for (let j = 0; j < this.m; j++) {
+            X.matrix[i][k] = X.matrix[i][k] + this.matrix[i][j] * B.matrix[j][k]
+          }
+        }
+      }
+  
+      return X
+    }
+    addEquals(B) {
+      this.checkMatrixDimensions(B)
+      const X = new GeneralMatrix(this.n, this.m, this.matrix)
+      for (let i = 0; i < this.n; i++) {
+        for (let j = 0; j < this.m; j++) {
+          X.matrix[i][j] += B.matrix[i][j]
+        }
+      }
+      return X
+    }
+    substractEquals(B){
+      this.checkMatrixDimensions(B);
+      const X = new GeneralMatrix(this.n, this.m, this.matrix)
+      for (let i = 0; i < this.n; i++) {
+        for (let j = 0; j < this.m; j++) {
+          X.matrix[i][j] -= B.matrix[i][j]
+        }
+      }
+      return X
+  
+    }
+    checkMatrixDimensions(B) {
+      if (B.m !== this.m || B.n !== this.n) {
+        throw new Error("GeneralMatrix dimensions must agree.")
+      }
+    }
+    getElement(i, j) {
+      return this.matrix[i][j]
+    }
   }
   module.exports = {
     CenterUtils

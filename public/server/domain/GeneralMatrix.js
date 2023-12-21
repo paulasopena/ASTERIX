@@ -213,33 +213,35 @@ class GeoUtils {
   }
   geocentric2systemCartesian(geo){
     const centerCoordinates = getTheCenter();
-    console.log(centerCoordinates);
     let centerUtils = new CenterUtils(centerCoordinates);
     let T1 = centerUtils.translationMatrix;
     let R1 = centerUtils.rotationMatrix;
-    if (!centerUtils.coordinates || !R1 || !T1 || !geo) return null;
-
     let coefInput = [geo.X, geo.Y, geo.Z];
     let inputMatrix = new Array(3).fill(0).map((_, i) => [coefInput[i]]);
-    let inputMatrixObj = new GeneralMatrix(inputMatrix, 3, 1);
-    inputMatrixObj.substractEquals(T1);
-    let R2 = R1.multiply(inputMatrixObj);
+    let inputMatrixObj = new GeneralMatrix(3, 1, inputMatrix);
+    let R2 = R1.multiply(inputMatrixObj.substractEquals(T1));
     let res = {
-        X: R2.GetElement(0, 0),
-        Y: R2.GetElement(1, 0),
-        Z: R2.GetElement(2, 0)
+        X: R2.getElement(0, 0),
+        Y: R2.getElement(1, 0),
+        Z: R2.getElement(2, 0)
     };
     return res;
   }
   systemCartesian2systemStereographical(c){
-    if (!c) return null;
     let res = new CoordinatesUVH();
+    const centerCoordinates = getTheCenter();
+    let R_S = 0;
+    const A =6378137.0;
+    const E2=0.00669437999013;
+    R_S = (A * (1.0 - E2)) /
+                Math.pow(1 - E2 * Math.pow(Math.sin(centerCoordinates.Lat), 2.0), 1.5);
+    let centerUtils = new CenterUtils(centerCoordinates);
     let d_xy2 = c.X * c.X + c.Y * c.Y;
     res.Height = Math.sqrt(d_xy2 +
-        (c.Z + this.centerProjection.Height + this.R_S) *
-        (c.Z + this.centerProjection.Height + this.R_S)) - this.R_S;
-    let k = (2 * this.R_S) /
-        (2 * this.R_S + this.centerProjection.Height + c.Z + res.Height);
+        (c.Z + centerUtils.coordinates.Alt + R_S) *
+        (c.Z + centerUtils.coordinates.Alt + R_S)) - R_S;
+    let k = (2 * R_S) /
+        (2 * R_S + centerUtils.coordinates.Alt + c.Z + res.Height);
     res.U = k * c.X;
     res.V = k * c.Y;
     return res;
@@ -251,13 +253,9 @@ class GeoUtils {
     return geocentricThird
   }
   conversionEstereographical(polarCoordinates){
-    console.log('here i am!');
     const cartesianFirst = this.polarCoordinates2cartesian(polarCoordinates)
-    console.log(cartesianFirst);
     const geocentricSecond = this.cartesian2Geocentric(cartesianFirst)
-    console.log(geocentricSecond);
     const systemCartesianThird = this.geocentric2systemCartesian(geocentricSecond);
-    console.log(systemCartesianThird);
     const systemStereographical = this.systemCartesian2systemStereographical(systemCartesianThird);
     return systemStereographical;
   }
@@ -267,6 +265,7 @@ function getTheRadar() {
   return { Lat: 41.3007023, Lon: 2.1020588, Alt: 2.007 + 25.25 };
 }
 function getTheCenter() {
+  
   return { Lat: 41.10904, Lon: 1.226947, Alt: 3438.954 };
 }
 
