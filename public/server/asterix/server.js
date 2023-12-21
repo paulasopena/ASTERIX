@@ -388,7 +388,7 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
           const prevAircraft = aircraftArray[i - 1];
           const currentAircraft = aircraftArray[i];
 
-          const startTime = moment.tz(prevAircraft.timeDeparture, timeZone).toDate();
+          const startTime = moment.tz(currentAircraft.timeDeparture, timeZone).toDate();
           const endTime = moment.tz(`${moment(startTime).format('MM/DD/YYYY')} ${currentAircraft.route[currentAircraft.route.length - 1].timeOfDay}`, timeZone).toDate();
           
           let currentTime = moment(startTime);
@@ -417,9 +417,9 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
         }
 
         console.log(distances);
-        //radarMinimum(aircraftArray, distances);
+        radarMinimum(aircraftArray, distances);
         LoAMinimum(aircraftArray, distances);
-        //ContrailsMinimum(aircraftArray, distances);
+        ContrailsMinimum(aircraftArray, distances);
 
         res.json(aircraftArray);
       })
@@ -431,11 +431,11 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
 
 function radarMinimum(aircraftArray, distances) {
   const totalDistances = distances.length;
-  const distancesGreaterThan3 = distances.filter(distance => distance > 3).length;
+  const distancesSmallerThan3 = distances.filter(distance => distance < 3).length;
 
-  const percentage = (distancesGreaterThan3 / totalDistances) * 100;
+  const percentage = (distancesSmallerThan3 / totalDistances) * 100;
 
-  console.log(`BREACH MINIMUM RADAR: ${distancesGreaterThan3} - ${totalDistances} (${percentage.toFixed(2)}%)`);
+  console.log(`BREACH MINIMUM RADAR: ${distancesSmallerThan3} - ${totalDistances} (${percentage.toFixed(2)}%)`);
 }
 
 function LoAMinimum(aircraftArray, distances) {
@@ -516,23 +516,30 @@ function LoAMinimum(aircraftArray, distances) {
 
 
         const typeAircraft1 = aircraftArray[i].typeAircraft;
-        console.log(typeAircraft1)
-
         const typeAircraft2 = aircraftArray[+ 1].typeAircraft;
+
+        const proc1 = aircraftArray[i].procDep;
+        const proc2 = aircraftArray[+ 1].procDep;
+
+        const runway1 = aircraftArray[i].runway;
+        const runway2 = aircraftArray[+ 1].runway;
+
+        var sameSID = areSameSID(proc1, proc2) ? "SameSID" : "DifferentSID";
+        if (runway1 != runway2) {
+          sameSID = "DifferentSID";
+        }
 
         const typeAircraft1_csv = findTypeName(typeAircraft1, columnMapping);
         const typeAircraft2_csv = findTypeName(typeAircraft2, columnMapping);
         if (typeAircraft1_csv && typeAircraft2_csv) {
-          const requiredSeparation = getRequiredSeparation(typeAircraft1_csv, typeAircraft2_csv, LoARequirements);
-          console.log("YINE")
-          
+          const requiredSeparation = getRequiredSeparation(typeAircraft1_csv, typeAircraft2_csv, LoARequirements, sameSID);
+
           const actualDistance = distances[i];
           
           if (actualDistance < requiredSeparation) {
             count++;
           }
         }
-        
         
       }
       console.log(`Number of aircraft pairs not maintaining required separation: ${count}`)
@@ -541,19 +548,34 @@ function LoAMinimum(aircraftArray, distances) {
 
 }
 
+function areSameSID(proc1, proc2) {
+  let SIDs = {
+    'G1': ['OLOXO', 'NATPI', 'MOPAS', 'LOBAR', 'GRAUS', 'MAMUK', 'REBUL', 'VIBOK', 'DUQQI'],
+    'G2': ['LARPA', 'DUNES', 'SENIA', 'LOTOS'],
+    'G3': ['AGENA', 'DALIN', 'DIPES']
+  };
+
+  for (let group in SIDs) {
+      if (SIDs[group].some(sid => proc1.includes(sid) && proc2.includes(sid))) {
+          return true;
+      }
+  }
+  return false;
+}
+
 function findTypeName(typeAircraft, columnMapping) {
   for (const column in columnMapping) {
     if (columnMapping[column].includes(typeAircraft)) {
       return column;
     }
   }
-  return null;
+  return 'R';
 }
 
-function getRequiredSeparation(typeAircraft1, typeAircraft2, LoARequirements) {
-  console.log("HERE E")
-  console.log(typeAircraft1 + "  " + typeAircraft2)
-  minDistance = LoARequirements[typeAircraft1][typeAircraft2]
+function getRequiredSeparation(typeAircraft1, typeAircraft2, LoARequirements, sameSID) {
+  //console.log("PREV: " + typeAircraft1 + ", SUCC: " + typeAircraft2 + ", SIC: " + sameSID)
+  minDistance = LoARequirements[typeAircraft1][typeAircraft2][sameSID]
+  //console.log(minDistance)
   return minDistance;
 }
 
@@ -614,7 +636,7 @@ function findPositionAtTime(aircraft, time) {
 }
 
 function calculateDistance(U1, V1, U2, V2) {
-  const distance = Math.sqrt((U1-U2)^2 + (V1-V2)^2)/1852;
+  const distance = Math.sqrt(Math.pow(U1-U2, 2.0) + Math.pow(V1-V2, 2.0))/1852;
   return distance;
 }
 
