@@ -171,7 +171,7 @@ const MapComponent_P3: React.FC = () => {
           const filePath = filePathCSV.replace('.ast', '.csv');
           const aircrafts =await getFilteredAircrafts(filePath);
           if (aircrafts != undefined) {
-            const parsedAircrafts = JSON.parse(aircrafts);
+            const parsedAircrafts = aircrafts;
             setFileData(parsedAircrafts);
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {

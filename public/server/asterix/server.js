@@ -291,6 +291,7 @@ const loadAircraftIdentifiers = async () => {
 }
 
 app.get("/filteredAircrafts/:filePath", async (req, res) => {
+
   const MIN_LAT = 40.9;
   const MAX_LAT = 41.7;
   const MIN_LNG = 1.5;
@@ -346,7 +347,12 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
           'ModeS Roll-Call + PSR'
         ];
 
-        const aircraftFiltered = filteredAircrafts.find(a => a.aircraftIdentification === aircraftIdentification);
+        const validRunways = ["LEBL-06R", "LEBL-24L"];
+
+        const aircraftFiltered = filteredAircrafts.find(a => 
+          a.aircraftIdentification === aircraftIdentification &&
+          validRunways.includes(a.runway)
+        );
 
         if (aircraftFiltered && Number(lat) >= MIN_LAT && Number(lat) <= MAX_LAT && Number(lng) >= MIN_LNG && Number(lng) <= MAX_LNG) {
           if(validTYPValues.includes(TYP)){
