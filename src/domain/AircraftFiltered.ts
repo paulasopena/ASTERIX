@@ -25,4 +25,6 @@ export interface RouteCoordinates {
     lng: number;
     height: number;
     timeOfDay: string;
+    V_stereo: number,
+    U_stereo: number,
 }

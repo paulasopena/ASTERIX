@@ -12,6 +12,8 @@
     "@types/react": "^18.2.23",
     "@types/react-dom": "^18.2.8",
     "arcgis-js-api": "^4.28.10",
+    "chart.js": "^4.4.1",
+    "chartjs-plugin-annotation": "^3.0.1",
     "concurrently": "^8.2.1",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",

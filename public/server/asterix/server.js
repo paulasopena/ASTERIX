@@ -421,7 +421,7 @@ app.get("/filteredAircrafts/:filePath", async (req, res) => {
         LoAMinimum(aircraftArray, distances);
         ContrailsMinimum(aircraftArray, distances);
 
-        res.json(aircraftArray);
+        res.json({ aircraftArray, distances });
       })
   } catch (error) {
     console.error("Error", error)

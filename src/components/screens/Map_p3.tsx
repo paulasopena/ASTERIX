@@ -97,7 +97,7 @@ const MapComponent_P3: React.FC = () => {
           const filePath = filePathCSV.replace('.ast', '.csv');
           const aircrafts = await getFilteredAircrafts(filePath);
           if (aircrafts != undefined) {
-            const parsedAircrafts = JSON.parse(aircrafts);    
+            const parsedAircrafts = aircrafts;    
             setFileData(parsedAircrafts);
 
             const allTimes = parsedAircrafts.reduce((times: number[], aircraft: { route: { timeOfDay: string; }[]; }) => {
@@ -268,20 +268,9 @@ const MapComponent_P3: React.FC = () => {
     return (radToDeg(angle) + 270) % 360;
   }
 
-  function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
-    const R = 6371e3; 
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lng2-lng1) * Math.PI/180;
-  
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  
-    const distance = R * c;
-    return distance; 
+  function calculateDistance(U1: number, V1: number, U2: number, V2: number) {
+    const distance = Math.sqrt(Math.pow(U1-U2, 2.0) + Math.pow(V1-V2, 2.0))/1852;
+    return distance;
   }
   
 
@@ -345,8 +334,7 @@ const MapComponent_P3: React.FC = () => {
       }
     }));
 
-    const routeLines = fileData.map((aircraft, index) => {
-      
+    const routeLines = fileData.map((aircraft, index) => {      
       if (index < fileData.length - 1) {
         const hours = new Date(fileData[index + 1].timeDeparture).getHours();
         const minutes = new Date(fileData[index + 1].timeDeparture).getMinutes();
@@ -371,11 +359,11 @@ const MapComponent_P3: React.FC = () => {
               const currentPosition2 = nextAircraft.route[currentIndex2];
   
               const distance = calculateDistance(
-                currentPosition1.lat, currentPosition1.lng,
-                currentPosition2.lat, currentPosition2.lng
+                currentPosition1.U_stereo, currentPosition1.V_stereo,
+                currentPosition2.U_stereo, currentPosition2.V_stereo
               );
               
-              const distanceText = (distance * 0.00053995680345572).toFixed(2) + ' NM';
+              const distanceText = (distance).toFixed(2) + ' NM';
   
               const lineBetweenAircrafts = {
                 type: 'Feature',

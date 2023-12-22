@@ -1,110 +1,98 @@
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
-import { getFilteredAircrafts } from '../../asterix/file_manager';
+import { getDistances, getFilteredAircrafts } from '../../asterix/file_manager';
 import { AircraftFiltered, RouteCoordinates } from '../../domain/AircraftFiltered';
+import Chart from 'chart.js/auto';
+import 'chartjs-plugin-annotation';
 
 const RadarStatistics: React.FC = () => {
     const navigation = useNavigate();
     const [fileData, setFileData] = useState<AircraftFiltered[]>([]);
-    const [distances] = useState<number[]>([]);
+    const [distances, setDistances] = useState<number[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchData = async () => {
-          try {
-            const filePathCSV = localStorage.getItem('nombreArchivo');
-            if (filePathCSV) {
-              const filePath = filePathCSV.replace('.ast', '.csv');
-              const aircrafts =await getFilteredAircrafts(filePath);
-              if (aircrafts != undefined) {
-                const parsedAircrafts = JSON.parse(aircrafts);
-                setFileData(parsedAircrafts);                
-              }
-            }        
-          } catch (error) {
-            console.error('Error fetching file data:', error);
-          }
+            try {
+                const filePathCSV = localStorage.getItem('nombreArchivo');
+                if (filePathCSV) {
+                    const filePath = filePathCSV.replace('.ast', '.csv');
+                    const distances = await getDistances(filePath);
+                    if (distances !== undefined) {
+                        setFileData(distances);
+                        setDistances(distances.filter((distance: any) => distance !== null));
+                        setLoading(false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching file data:', error);
+                setLoading(false);
+            }
         };
-    
-        fetchData().then(() => {
-            const distances = calculateConsecutiveDepartureDistances(fileData, radarUpdateTime);
-            console.log(distances);
-        });
+
+        fetchData();
     }, []);
 
-    function calculateConsecutiveDepartureDistances(fileData: AircraftFiltered[], radarUpdateTime: number) {
-        const distances = [];
+    useEffect(() => {
+        // Renderizar el gráfico cuando distances se actualiza
+        renderChart();
+    }, [distances]);
 
-        for (let i = 0; i < fileData.length - 1; i++) {
-          const currentAircraft = fileData[i];
-          const nextAircraft = fileData[i + 1];
+    const renderChart = () => {
+        const chartData = {
+            labels: Array.from({ length: distances.length }, (_, index) => index + 1),
+            datasets: [
+                {
+                    label: 'Distances',
+                    data: distances,
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                },
+            ],
+        };
 
-          const currentDepartureTimeSeconds = convertTimeToSeconds(currentAircraft.timeDeparture);
-          const nextDepartureTimeSeconds = convertTimeToSeconds(nextAircraft.timeDeparture);
-
-          if (currentDepartureTimeSeconds < nextDepartureTimeSeconds) {
-            for (let time = currentDepartureTimeSeconds; time <= nextDepartureTimeSeconds; time += radarUpdateTime) {
-              const currentPosition = findPositionAtTime(currentAircraft.route, time);
-              const nextPosition = findPositionAtTime(nextAircraft.route, time);
-              
-              if (currentPosition && nextPosition) {
-                const distance = calculateDistanceNM(
-                  currentPosition.lat, currentPosition.lng,
-                  nextPosition.lat, nextPosition.lng
-                );
-                
-                distances.push({
-                  time: new Date(time * 1000), 
-                  distanceNM: distance
-                });
-              }
+        const ctx = document.getElementById('lineChart') as HTMLCanvasElement | null;
+        if (ctx) {
+            // Destruir el gráfico existente si hay uno
+            const existingChart = Chart.getChart(ctx);
+            if (existingChart) {
+                existingChart.destroy();
             }
-          }
+
+            // Renderizar el nuevo gráfico con el complemento de anotación
+            new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                        },
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: [
+                                {
+                                    type: 'line',
+                                    scaleID: 'y',
+                                    value: 3,
+                                    borderColor: 'red',
+                                    borderWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+            });
         }
-        
-        return distances;
-    }
-
-    function calculateDistanceNM(lat1: number, lng1: number, lat2: number, lng2: number) {
-        const R = 6371e3; 
-        const φ1 = lat1 * Math.PI/180;
-        const φ2 = lat2 * Math.PI/180;
-        const Δφ = (lat2-lat1) * Math.PI/180;
-        const Δλ = (lng2-lng1) * Math.PI/180;
-        
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                    Math.cos(φ1) * Math.cos(φ2) *
-                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        
-        const distance = R * c;
-        return distance * 0.00053995680345572; 
-    }
-    
-    const convertTimeToSeconds = (timeOfDay: string): number => {
-        const [hours, minutes, seconds] = timeOfDay.split(':').map(Number);
-        return hours * 3600 + minutes * 60 + seconds;
     };
-    
-    const findPositionAtTime = (positions: RouteCoordinates[], targetTime: number): RouteCoordinates | null => {
-        let closestPosition = null;
-        let minTimeDifference = Infinity;
-        
-        positions.forEach(position => {
-            const positionTime = convertTimeToSeconds(position.timeOfDay);
-            const timeDifference = Math.abs(targetTime - positionTime);
-        
-            if (timeDifference < minTimeDifference) {
-                minTimeDifference = timeDifference;
-                closestPosition = position;
-            }
-        });
-        
-        return closestPosition;
-    };
-    
-    const radarUpdateTime = 4;  
-
 
     return (
         <div>
@@ -112,11 +100,12 @@ const RadarStatistics: React.FC = () => {
                 <ArrowBackIcon />
             </button>
 
+            {loading && <p>Loading...</p>}
+
+            {!loading && <canvas id="lineChart" width={400} height={200}></canvas>}
+            
         </div>
-    )
-    
-}
-
-
+    );
+};
 
 export default RadarStatistics;
