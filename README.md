@@ -767,6 +767,19 @@ Our study encompasses a statistical analysis of diverse technical and operationa
 
 Building upon the success of Project 2, which developed an ASTERIX decoder and simulator, this project extends those efforts.
 
+## 🔸MODIFICATIONS OF P2 🔸
+
+For the modification of project 2, what has been done is to add a new section to its main page:
+
+
+
+Then, when clicking on the statistics button, the user is able to access the section developed for this project. The main difference on the map is that instead of seeing the stele of the planes, the distance between consecutive planes is seen in real time, as we can see in the following image:
+
+
+
+And, finally, the statistics button on this main page redirects the user to the different graphs that we will explain in the following sections
+
+
 
 ## 🔸 CREATORS AND CONTRIBUTORS 🔸
 
