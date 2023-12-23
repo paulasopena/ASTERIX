@@ -757,6 +757,13 @@ As it can be seen in the GANTT diagram, the most time consuming parts have been 
 
 # ❄️ STATISTICAL ANALYSIS OF TECHNICAL AND AOPERATIONAL PARAMETERS (P3) ❄️
 
+The essence of this report is an analytical review of the implementation of new RNAV 1 Standard Instrument Departures (SIDs) at Barcelona Airport (LEBL), a pivotal component of the BRAIN Phase II project initiated in April 2023. This project is oriented towards augmenting the airport's movement capacity. Following a designated period of testing and transition, we aim to evaluate the fidelity of actual take-off trajectories to the SIDs as delineated in the AIP.
+Our study encompasses a statistical analysis of diverse technical and operational parameters associated with take-offs from runways RWY 24L and RWY 06R. Key ATM parameters under study include the losses in separation between consecutive take-offs, assessed through:
+1. Radar
+2. LoA (Letter of Agreement between LECB-LEBL, encompassing TMA-TWR)
+3. Contrails
+Building upon the success of Project 2, which developed an ASTERIX decoder and simulator, this project extends those efforts.
+
 
 ## 🔸 CREATORS AND CONTRIBUTORS 🔸
 
