@@ -4,6 +4,9 @@ import BarChartIcon from '@material-ui/icons/BarChart';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import './HomeStyle.css';
+import gen1 from '../../statistics/GENERAL1.png';
+import gen2 from '../../statistics/GENERAL2.png';
+import gen3 from '../../statistics/GENERAL3.png';
 
 const ChooseStatistic: React.FC = () => {
     const navigation = useNavigate();
@@ -46,11 +49,17 @@ const ChooseStatistic: React.FC = () => {
                     color="default"
                     className={classes.button}
                     startIcon={<BarChartIcon />}
-                    onClick={() => navigation('/loa')}
+                    onClick={() => navigation('/stele')}
                     >
-                    STELE STATISTICS
+                    CONTRAILS STATISTICS
                 </Button>
             </div>
+            <h5 style={{ fontSize: '40px' }}>GENERAL STATISTICS:</h5>
+            <div style={{flexDirection: 'column'}}>
+                {gen1 && <img src={gen1} style={{ maxWidth: '50%', maxHeight: '50%' }} />} 
+                {gen2 && <img src={gen2} style={{ maxWidth: '50%', maxHeight: '50%' }} />}   
+                {gen3 && <img src={gen3} style={{ maxWidth: '50%', maxHeight: '50%' }} />} 
+            </div>   
         </div>
     )
     
