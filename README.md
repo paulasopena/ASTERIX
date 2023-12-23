@@ -771,11 +771,11 @@ Building upon the success of Project 2, which developed an ASTERIX decoder and s
 
 For the modification of project 2, what has been done is to add a new section to its main page:
 
-
+![Captura de pantalla 2023-12-23 095452](https://github.com/paulasopena/ASTERIX/assets/113899744/257ed117-7f4c-4d21-b062-9bc46426748e)
 
 Then, when clicking on the statistics button, the user is able to access the section developed for this project. The main difference on the map is that instead of seeing the stele of the planes, the distance between consecutive planes is seen in real time, as we can see in the following image:
 
-
+![Captura de pantalla 2023-12-23 100003](https://github.com/paulasopena/ASTERIX/assets/113899744/321c919c-c513-4b7a-9b2f-35d817328f67)
 
 And, finally, the statistics button on this main page redirects the user to the different graphs that we will explain in the following sections
 
