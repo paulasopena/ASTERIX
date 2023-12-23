@@ -779,6 +779,7 @@ Then, when clicking on the statistics button, the user is able to access the sec
 
 And, finally, the statistics button on this main page redirects the user to the different graphs that we will explain in the following sections
 
+![papitooo](https://github.com/paulasopena/ASTERIX/assets/91852254/7e35f7b5-176d-4f8b-905f-929f5cd0a62d)
 
 
 ## 🔸 CREATORS AND CONTRIBUTORS 🔸
